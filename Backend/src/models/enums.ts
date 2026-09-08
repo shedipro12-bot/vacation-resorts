@@ -16,6 +16,11 @@ export enum StatusCode {
 
     // Server Errors:
     InternalServerError = 500
-    
+
 }
 
+
+export enum Role {
+    Admin = 1,
+    User = 2
+}

@@ -38,20 +38,20 @@ Relevant lessons: relational database design, SQL tables, joins, DML, and the Fu
 - [x] Choose correct delete behavior: deleting a vacation or user should remove its likes.
 - [x] Add database constraints for unique email, nonnegative price, maximum price 10,000, and valid date order.
 - [x] Insert both roles.
-- [ ] Insert one development admin and one development user with hashed passwords.
-- [ ] Insert at least 12 vacations with realistic data.
-- [ ] Include past, currently active, and future vacations so every filter can be tested.
-- [ ] Insert several likes for the development user.
-- [ ] Export the completed database into the `Database` folder.
+- [x] Insert one development admin and one development user with hashed passwords.
+- [x] Insert at least 12 vacations with realistic data.
+- [x] Include past, currently active, and future vacations so every filter can be tested.
+- [x] Insert several likes for the development user.
+- [x] Export the completed database into the `Database` folder.
 
 Verification gate:
 
-- [ ] Importing the SQL into an empty MySQL server succeeds without errors.
-- [ ] Running the SQL again also succeeds because tables are dropped or safely recreated.
-- [ ] Duplicate emails are rejected.
-- [ ] Duplicate user-vacation likes are rejected.
-- [ ] A `LEFT JOIN` query returns every vacation, including vacations with zero likes.
-- [ ] Vacations can be sorted by `startDate ASC`.
+- [x] Importing the SQL into an empty MySQL server succeeds without errors.
+- [x] Running the SQL again also succeeds because tables are dropped or safely recreated.
+- [x] Duplicate emails are rejected.
+- [x] Duplicate user-vacation likes are rejected.
+- [x] A `LEFT JOIN` query returns every vacation, including vacations with zero likes.
+- [x] Vacations can be sorted by `startDate ASC`.
 
 Suggested commit: `feat: create vacations database schema and seed data`
 
@@ -59,14 +59,14 @@ Suggested commit: `feat: create vacations database schema and seed data`
 
 Relevant lessons: Layered REST API, middleware, error handling, and secure coding.
 
-- [ ] Replace generic `data-*` placeholders with project-specific files.
-- [ ] Keep HTTP routing inside `controllers`.
-- [ ] Keep business logic and SQL inside `services`.
-- [ ] Keep validation and data shapes inside `models`.
-- [ ] Keep configuration, database access, password hashing, and JWT helpers inside `utils`.
-- [ ] Keep authentication, authorization, errors, logging, and security inside `middleware`.
-- [ ] Configure all database and secret values through the backend `.env` file.
-- [ ] Add the MySQL port to the DAL configuration for Docker compatibility.
+- [x] Replace generic `data-*` placeholders with project-specific files.
+- [x] Keep HTTP routing inside `controllers`.
+- [x] Keep business logic and SQL inside `services`.
+- [x] Keep validation and data shapes inside `models`.
+- [x] Keep configuration, database access, password hashing, and JWT helpers inside `utils`.
+- [x] Keep authentication, authorization, errors, logging, and security inside `middleware`.
+- [x] Configure all database and secret values through the backend `.env` file.
+- [x] Add the MySQL port to the DAL configuration for Docker compatibility.
 - [ ] Add a small `/api/health` route.
 - [ ] Register all middleware in the correct before-controller/after-controller order.
 
@@ -82,8 +82,8 @@ Suggested commit: `refactor: adapt backend template for vacation system`
 
 Relevant lessons: Auth, JWT, secure coding, Zod, and middleware.
 
-- [ ] Add a `Role` enum whose IDs match the database.
-- [ ] Create `UserModel` with Zod validation.
+- [x] Add a `Role` enum whose IDs match the database.
+- [x] Create `UserModel` with Zod validation.
 - [ ] Create `CredentialsModel` with Zod validation.
 - [ ] Require all registration fields.
 - [ ] Validate email format.
