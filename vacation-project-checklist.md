@@ -13,14 +13,14 @@ Project stack: MySQL, Node.js, Express, React, and TypeScript.
 - [x] Create `.env.example` files containing variable names only—never real secrets.
 - [x] Run `npm install` inside `Backend`.
 - [x] Run `npm install` inside `Frontend`.
-- [ ] Confirm the backend starts.
-- [ ] Confirm the frontend starts.
-- [ ] Initialize Git and make a clean template commit.
+- [x] Confirm the backend starts.
+- [x] Confirm the frontend starts.
+- [x] Initialize Git and make a clean template commit.
 
 Verification gate:
 
-- [ ] Both projects run without TypeScript or import errors.
-- [ ] No secret or `node_modules` folder appears in `git status`.
+- [x] Both projects run without TypeScript or import errors.
+- [x] No secret or `node_modules` folder appears in `git status`.
 
 Suggested commit: `chore: initialize project from course template`
 
@@ -28,16 +28,16 @@ Suggested commit: `chore: initialize project from course template`
 
 Relevant lessons: relational database design, SQL tables, joins, DML, and the Full Stack Template.
 
-- [ ] Draw the relationship between `roles`, `users`, `vacations`, and `likes`.
-- [ ] Create a `roles` table with Admin and User roles.
-- [ ] Create a `users` table with ID, first name, last name, unique email, password hash, and role ID.
-- [ ] Create a `vacations` table with ID, destination, description, start date, end date, price, and image filename.
-- [ ] Create a `likes` junction table containing user ID and vacation ID.
-- [ ] Give `likes` a composite primary key so one user cannot like the same vacation twice.
-- [ ] Add foreign keys from users to roles and from likes to users/vacations.
-- [ ] Choose correct delete behavior: deleting a vacation or user should remove its likes.
-- [ ] Add database constraints for unique email, nonnegative price, maximum price 10,000, and valid date order.
-- [ ] Insert both roles.
+- [x] Draw the relationship between `roles`, `users`, `vacations`, and `likes`.
+- [x] Create a `roles` table with Admin and User roles.
+- [x] Create a `users` table with ID, first name, last name, unique email, password hash, and role ID.
+- [x] Create a `vacations` table with ID, destination, description, start date, end date, price, and image filename.
+- [x] Create a `likes` junction table containing user ID and vacation ID.
+- [x] Give `likes` a composite primary key so one user cannot like the same vacation twice.
+- [x] Add foreign keys from users to roles and from likes to users/vacations.
+- [x] Choose correct delete behavior: deleting a vacation or user should remove its likes.
+- [x] Add database constraints for unique email, nonnegative price, maximum price 10,000, and valid date order.
+- [x] Insert both roles.
 - [ ] Insert one development admin and one development user with hashed passwords.
 - [ ] Insert at least 12 vacations with realistic data.
 - [ ] Include past, currently active, and future vacations so every filter can be tested.
