@@ -67,14 +67,14 @@ Relevant lessons: Layered REST API, middleware, error handling, and secure codin
 - [x] Keep authentication, authorization, errors, logging, and security inside `middleware`.
 - [x] Configure all database and secret values through the backend `.env` file.
 - [x] Add the MySQL port to the DAL configuration for Docker compatibility.
-- [ ] Add a small `/api/health` route.
-- [ ] Register all middleware in the correct before-controller/after-controller order.
+- [x] Add a small `/api/health` route.
+- [x] Register all middleware in the correct before-controller/after-controller order.
 
 Verification gate:
 
-- [ ] TypeScript compilation succeeds.
-- [ ] `GET /api/health` returns HTTP 200 and JSON.
-- [ ] An unknown route returns HTTP 404 through the error middleware.
+- [x] TypeScript compilation succeeds.
+- [x] `GET /api/health` returns HTTP 200 and JSON.
+- [x] An unknown route returns HTTP 404 through the error middleware.
 
 Suggested commit: `refactor: adapt backend template for vacation system`
 
@@ -84,20 +84,20 @@ Relevant lessons: Auth, JWT, secure coding, Zod, and middleware.
 
 - [x] Add a `Role` enum whose IDs match the database.
 - [x] Create `UserModel` with Zod validation.
-- [ ] Create `CredentialsModel` with Zod validation.
-- [ ] Require all registration fields.
-- [ ] Validate email format.
-- [ ] Require passwords to contain at least four characters.
-- [ ] Implement `isEmailTaken` using a parameterized SQL query.
-- [ ] Force every public registration to receive the User role on the server.
-- [ ] Hash the password before storing it.
-- [ ] Hash the submitted login password before comparing it.
-- [ ] Generate a JWT after successful registration and login.
-- [ ] Exclude the password hash from the JWT payload and API responses.
-- [ ] Implement logged-in and admin middleware.
-- [ ] Add `POST /api/auth/register`.
-- [ ] Add `POST /api/auth/login`.
-- [ ] Add both requests to the Postman collection.
+- [x] Create `CredentialsModel` with Zod validation.
+- [x] Require all registration fields.
+- [x] Validate email format.
+- [x] Require passwords to contain at least four characters.
+- [x] Implement `isEmailTaken` using a parameterized SQL query.
+- [x] Force every public registration to receive the User role on the server.
+- [x] Hash the password before storing it.
+- [x] Hash the submitted login password before comparing it.
+- [x] Generate a JWT after successful registration and login.
+- [x] Exclude the password hash from the JWT payload and API responses.
+- [x] Implement logged-in and admin middleware.
+- [x] Add `POST /api/auth/register`.
+- [x] Add `POST /api/auth/login`.
+- [x] Add both requests to the Postman collection.
 
 Verification gate:
 

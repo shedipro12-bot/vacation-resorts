@@ -7,9 +7,10 @@ const UserSchema = z.object({
     userId: z.number().int().positive().optional(),
     firstName: z.string().min(1).max(50),
     lastName: z.string().min(1).max(50),
-    email: z.string().email().max(100),
-    password: z.string().min(1).max(255),
-    roleId: z.number().int().min(1).max(2)
+    email: z.email().max(100),
+    password: z.string().min(3).max(255),
+    roleId: z.number().int().min(1).max(2),
+    captchaToken: z.string().max(2000)
 });
 
 // User data type inferred from the schema:
@@ -24,7 +25,7 @@ export class UserModel implements IUserModel {
     public email: string;
     public password: string;
     public roleId: number;
-
+    captchaToken: string
     public constructor(user: IUserModel) {
         this.userId = user.userId;
         this.firstName = user.firstName;
@@ -32,6 +33,7 @@ export class UserModel implements IUserModel {
         this.email = user.email;
         this.password = user.password;
         this.roleId = user.roleId;
+        this.captchaToken = user.captchaToken;
     }
 
     public validate(): void {

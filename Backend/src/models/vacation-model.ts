@@ -38,6 +38,9 @@ export class VacationModel implements IVacationModel {
     public endDate: string;
     public price: number;
     public imageFileName: string;
+    public imageUrl?: string;
+    public likesCount?: number;
+    public isLiked?: boolean;
 
     public constructor(vacation: IVacationModel) {
         this.vacationId = vacation.vacationId;
@@ -68,4 +71,5 @@ export class VacationModel implements IVacationModel {
         // Apply validated values, including trimmed strings:
         Object.assign(this, result.data);
     }
+    
 }

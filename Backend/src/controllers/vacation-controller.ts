@@ -8,14 +8,18 @@ class VacationController {
 
     // Constructor - register routes:
     public constructor() {
+        this.router.get("/api/health", this.health)
         this.router.get("/api/vacations", this.getAllVacations);
     }
 
     private async getAllVacations(request: Request, response: Response): Promise<void> {
-        const Vacation = await vacationService.getAllVacations();
-        response.json(Vacation);
+        const vacation = await vacationService.getAllVacations();
+        response.json(vacation);
     }
 
+    private async health(request: Request, response: Response): Promise<void> {
+
+    }
 }
 
 export const vacationController = new VacationController();
