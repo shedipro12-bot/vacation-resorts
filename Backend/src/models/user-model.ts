@@ -10,7 +10,6 @@ const UserSchema = z.object({
     email: z.email().max(100),
     password: z.string().min(3).max(255),
     roleId: z.number().int().min(1).max(2),
-    captchaToken: z.string().max(2000)
 });
 
 // User data type inferred from the schema:
@@ -25,7 +24,6 @@ export class UserModel implements IUserModel {
     public email: string;
     public password: string;
     public roleId: number;
-    captchaToken: string
     public constructor(user: IUserModel) {
         this.userId = user.userId;
         this.firstName = user.firstName;
@@ -33,7 +31,6 @@ export class UserModel implements IUserModel {
         this.email = user.email;
         this.password = user.password;
         this.roleId = user.roleId;
-        this.captchaToken = user.captchaToken;
     }
 
     public validate(): void {
@@ -41,14 +38,7 @@ export class UserModel implements IUserModel {
 
         if (!result.success) {
             const issue = result.error.issues[0];
-            const message = issue
-                ? `${issue.path.join(".")}: ${issue.message}`
-                : "Invalid user data";
-
-            throw new ClientError(
-                StatusCode.UnprocessableContent,
-                message
-            );
+            const message = issue ? `${issue.path.join(".")}: ${issue.message}` : "Invalid user data"; throw new ClientError(StatusCode.UnprocessableContent,message);
         }
     }
 }

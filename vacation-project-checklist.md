@@ -101,12 +101,12 @@ Relevant lessons: Auth, JWT, secure coding, Zod, and middleware.
 
 Verification gate:
 
-- [ ] Registration returns HTTP 201 and a valid token.
-- [ ] A duplicate email returns HTTP 409.
-- [ ] Invalid input returns HTTP 422.
-- [ ] Incorrect credentials return HTTP 401.
-- [ ] A new registrant cannot choose the Admin role by changing the request body.
-- [ ] The database never contains a plain-text password.
+- [x] Registration returns HTTP 201 and a valid token.
+- [x] A duplicate email returns HTTP 409.
+- [x] Invalid input returns HTTP 422.
+- [x] Incorrect credentials return HTTP 401.
+- [x] A new registrant cannot choose the Admin role by changing the request body.
+- [x] The database never contains a plain-text password.
 
 Suggested commit: `feat: add registration login and role authorization`
 

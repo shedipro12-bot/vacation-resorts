@@ -17,8 +17,9 @@ class VacationController {
         response.json(vacation);
     }
 
-    private async health(request: Request, response: Response): Promise<void> {
-
+    private async health(request: Request, response: Response): Promise<any> {
+        const health = "Stay healthy"
+        response.json(health)
     }
 }
 

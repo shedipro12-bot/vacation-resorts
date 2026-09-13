@@ -32,19 +32,18 @@ class UserService {
     // Add user:
     public async addUser(user: UserModel): Promise<string> {
 
+        
+        // Set lowest role when registering:
+        user.roleId = Role.User
         // Validation:
         user.validate();
-        await this.verifyHuman(user.captchaToken);
-
-        // Set lowest role when registering:
-        user.roleId = Role.User;
 
         // Hash password:
         user.password = cyber.hash(user.password);
 
         // If email taken: 
         if (await this.isEmailTaken(user.email)) {
-            throw new ClientError(StatusCode.Conflict, "Email already taken.");
+            throw new ClientError(StatusCode.Conflict, "Email already Exists.");
         }
 
         // SQL:
@@ -97,7 +96,7 @@ class UserService {
     private async isEmailTaken(email: string): Promise<boolean> {
 
         // SQL:
-        const sql = "select id from users where email = ?";
+        const sql = "select userId from users where email = ?";
         const values = [email];
 
         // Execute: 
