@@ -58,6 +58,10 @@ class Cyber {
             return false; // Token not legal.
         }
     }
+    public getUserFromToken(token: string): UserModel {
+        const payload = jwt.verify(token, appConfig.jwtSecret!) as { user: UserModel };
+        return payload.user;
+    }
 
     // Verify admin:
     public verifyAdmin(token: string): boolean {
@@ -79,7 +83,7 @@ class Cyber {
             const user = payload.user;
 
             // If user is not admin:
-            if(user.roleId !== Role.Admin) {
+            if (user.roleId !== Role.Admin) {
                 return false;
             }
 

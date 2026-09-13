@@ -1,25 +1,32 @@
 import express, { Request, Response, Router } from "express";
+import path from "path";
 import { vacationService } from "../services/vacation-service";
-// Contains routes, without logic.
+import { loggerMiddleware } from "../middleware/logger-middleware";
+import { securityMiddleware } from "../middleware/security-middleware";
+
 class VacationController {
 
-    // Create a router object which can listen on routes:
     public router: Router = express.Router();
 
-    // Constructor - register routes:
     public constructor() {
-        this.router.get("/api/health", this.health)
-        this.router.get("/api/vacations", this.getAllVacations);
+        // Public image files:
+        this.router.use("/api/vacations/images", express.static(path.join(process.cwd(), "src/assets/images")));
+        // Protected vacation information:
+        this.router.get("/api/vacations", securityMiddleware.verifyLoggedIn, this.getAllVacations);
+        this.router.get("/api/vacations/:vacationId", securityMiddleware.verifyLoggedIn, this.getOneVacation);
     }
 
-    private async getAllVacations(request: Request, response: Response): Promise<void> {
-        const vacation = await vacationService.getAllVacations();
+    private async getAllVacations(request: Request,response: Response): Promise<void> {
+        const userId = (request as any).user.userId;
+        const vacations =  await vacationService.getAllVacations();
+        response.json(vacations);
+    }
+
+    private async getOneVacation(request: Request, response: Response): Promise<void> {
+        const vacationId = +request.params.vacationId;
+        const userId = (request as any).user.userId;
+        const vacation = await vacationService.getOneVacation(vacationId);
         response.json(vacation);
-    }
-
-    private async health(request: Request, response: Response): Promise<any> {
-        const health = "Stay healthy"
-        response.json(health)
     }
 }
 

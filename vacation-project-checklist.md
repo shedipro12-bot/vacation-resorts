@@ -114,10 +114,10 @@ Suggested commit: `feat: add registration login and role authorization`
 
 Relevant lessons: Layered REST API, SQL joins, JWT, and handling images.
 
-- [ ] Create `VacationModel` with all database and response fields.
-- [ ] Add Zod validation for destination, description, dates, and price.
-- [ ] Add response-only fields for image URL, like count, and whether the current user liked it.
-- [ ] Write one SQL query that returns vacations ordered by start date ascending.
+- [x] Create `VacationModel` with all database and response fields.
+- [x] Add Zod validation for destination, description, dates, and price.
+- [x] Add response-only fields for image URL, like count, and whether the current user liked it.
+- [x] Write one SQL query that returns vacations ordered by start date ascending.
 - [ ] Use `LEFT JOIN` so vacations with zero likes are returned.
 - [ ] Return the total likes for each vacation.
 - [ ] Return whether the logged-in user liked each vacation.

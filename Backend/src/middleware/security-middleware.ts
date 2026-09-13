@@ -10,20 +10,19 @@ class SecurityMiddleware {
 
     // Verify logged-in:
     public verifyLoggedIn(request: Request, response: Response, next: NextFunction): void {
-
-        // Extract token: 
-        const authorization = request.headers.authorization; // "Bearer the-token..."
-        const token = authorization?.substring(7);
-
-        // If token is legal:
+        // Extract token
+        const token = request.headers.authorization?.substring(7);
+        // Verify if token is legal
         if (cyber.verifyToken(token!)) {
+            (request as any).user = cyber.getUserFromToken(token!);
             next();
         }
+        // Throw error is its not
         else {
-            const err = new ClientError(StatusCode.Unauthorized, "You are not logged in.");
-            next(err); // Go to catchAll middleware.
+            next(new ClientError(StatusCode.Unauthorized, "You are not logged in."));
         }
     }
+
 
     // Verify admin:
     public verifyAdmin(request: Request, response: Response, next: NextFunction): void {
