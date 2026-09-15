@@ -118,22 +118,22 @@ Relevant lessons: Layered REST API, SQL joins, JWT, and handling images.
 - [x] Add Zod validation for destination, description, dates, and price.
 - [x] Add response-only fields for image URL, like count, and whether the current user liked it.
 - [x] Write one SQL query that returns vacations ordered by start date ascending.
-- [ ] Use `LEFT JOIN` so vacations with zero likes are returned.
-- [ ] Return the total likes for each vacation.
-- [ ] Return whether the logged-in user liked each vacation.
-- [ ] Build image URLs without exposing server file paths.
-- [ ] Add `GET /api/vacations` as a logged-in route.
-- [ ] Add `GET /api/vacations/:id` for the edit screen.
-- [ ] Add the image-serving route.
-- [ ] Add all requests to Postman.
+- [x] Use `LEFT JOIN` so vacations with zero likes are returned.
+- [x] Return the total likes for each vacation.
+- [x] Return whether the logged-in user liked each vacation.
+- [x] Build image URLs without exposing server file paths.
+- [x] Add `GET /api/vacations` as a logged-in route.
+- [x] Add `GET /api/vacations/:id` for the edit screen.
+- [x] Add the image-serving route.
+- [x] Add all requests to Postman.
 
 Verification gate:
 
-- [ ] An unauthenticated request returns HTTP 401.
-- [ ] The response is sorted by `startDate ASC`.
-- [ ] Every item has `likesCount` and `isLiked`.
-- [ ] An unknown vacation ID returns HTTP 404.
-- [ ] Each returned image URL loads successfully.
+- [x] An unauthenticated request returns HTTP 401.
+- [x] The response is sorted by `startDate ASC`.
+- [x] Every item has `likesCount` and `isLiked`.
+- [x] An unknown vacation ID returns HTTP 404.
+- [x] Each returned image URL loads successfully.
 
 Suggested commit: `feat: add protected vacation queries and images`
 

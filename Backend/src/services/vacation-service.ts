@@ -7,7 +7,7 @@ import { ClientError } from "../models/client-error";
 
 class VacationService {
     // Get all vacations:
-    public async getAllVacations(): Promise<VacationModel[]> {
+    public async getAllVacations(userId: any): Promise<VacationModel[]> {
 
         const sql = ` select *  from vacations ORDER BY startDate ASC `;
 
@@ -43,10 +43,7 @@ class VacationService {
         return vacation;
     }
 
-    public async vacationExists(
-        vacationId: number
-    ): Promise<boolean> {
-
+    public async vacationExists(vacationId: number): Promise<boolean> {
         const sql = `
             select EXISTS (
                 select 1
