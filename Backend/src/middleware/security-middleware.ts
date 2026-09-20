@@ -80,6 +80,20 @@ class SecurityMiddleware {
         }));
     }
 
+    public verifyUser(request: Request, response: Response, next: NextFunction): void {
+        // verifyLoggedIn must run before this middleware.
+        const user = (request as any).user;
+
+        if (user.roleId !== 1) {
+            next(new ClientError(
+                StatusCode.Forbidden,
+                "Only regular users can like or unlike vacations."
+            ));
+            return;
+        }
+
+        next();
+    }
 }
 
 export const securityMiddleware = new SecurityMiddleware();

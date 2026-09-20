@@ -1,438 +1,153 @@
-# Vacation Project — Start-to-Finish Checklist
-
-Use this checklist in order. Do not move to the next phase until the verification gate for the current phase passes.
-
-Project stack: MySQL, Node.js, Express, React, and TypeScript.
-
-## Phase 0 — Prepare the workspace
-
-- [x] Create the main project folder using your full name in English.
-- [x] Confirm it contains exactly the required top-level folders: `Database`, `Backend`, and `Frontend`.
-- [x] Copy the course Full Stack Template into the correct folders.
-- [x] Confirm `.gitignore` excludes `node_modules`, `dist`/`build`, and every `.env` file.
-- [x] Create `.env.example` files containing variable names only—never real secrets.
-- [x] Run `npm install` inside `Backend`.
-- [x] Run `npm install` inside `Frontend`.
-- [x] Confirm the backend starts.
-- [x] Confirm the frontend starts.
-- [x] Initialize Git and make a clean template commit.
-
-Verification gate:
-
-- [x] Both projects run without TypeScript or import errors.
-- [x] No secret or `node_modules` folder appears in `git status`.
-
-Suggested commit: `chore: initialize project from course template`
-
-## Phase 1 — Design the MySQL database
-
-Relevant lessons: relational database design, SQL tables, joins, DML, and the Full Stack Template.
-
-- [x] Draw the relationship between `roles`, `users`, `vacations`, and `likes`.
-- [x] Create a `roles` table with Admin and User roles.
-- [x] Create a `users` table with ID, first name, last name, unique email, password hash, and role ID.
-- [x] Create a `vacations` table with ID, destination, description, start date, end date, price, and image filename.
-- [x] Create a `likes` junction table containing user ID and vacation ID.
-- [x] Give `likes` a composite primary key so one user cannot like the same vacation twice.
-- [x] Add foreign keys from users to roles and from likes to users/vacations.
-- [x] Choose correct delete behavior: deleting a vacation or user should remove its likes.
-- [x] Add database constraints for unique email, nonnegative price, maximum price 10,000, and valid date order.
-- [x] Insert both roles.
-- [x] Insert one development admin and one development user with hashed passwords.
-- [x] Insert at least 12 vacations with realistic data.
-- [x] Include past, currently active, and future vacations so every filter can be tested.
-- [x] Insert several likes for the development user.
-- [x] Export the completed database into the `Database` folder.
-
-Verification gate:
-
-- [x] Importing the SQL into an empty MySQL server succeeds without errors.
-- [x] Running the SQL again also succeeds because tables are dropped or safely recreated.
-- [x] Duplicate emails are rejected.
-- [x] Duplicate user-vacation likes are rejected.
-- [x] A `LEFT JOIN` query returns every vacation, including vacations with zero likes.
-- [x] Vacations can be sorted by `startDate ASC`.
-
-Suggested commit: `feat: create vacations database schema and seed data`
-
-## Phase 2 — Adapt the backend template
-
-Relevant lessons: Layered REST API, middleware, error handling, and secure coding.
-
-- [x] Replace generic `data-*` placeholders with project-specific files.
-- [x] Keep HTTP routing inside `controllers`.
-- [x] Keep business logic and SQL inside `services`.
-- [x] Keep validation and data shapes inside `models`.
-- [x] Keep configuration, database access, password hashing, and JWT helpers inside `utils`.
-- [x] Keep authentication, authorization, errors, logging, and security inside `middleware`.
-- [x] Configure all database and secret values through the backend `.env` file.
-- [x] Add the MySQL port to the DAL configuration for Docker compatibility.
-- [x] Add a small `/api/health` route.
-- [x] Register all middleware in the correct before-controller/after-controller order.
-
-Verification gate:
-
-- [x] TypeScript compilation succeeds.
-- [x] `GET /api/health` returns HTTP 200 and JSON.
-- [x] An unknown route returns HTTP 404 through the error middleware.
-
-Suggested commit: `refactor: adapt backend template for vacation system`
-
-## Phase 3 — Build backend authentication
-
-Relevant lessons: Auth, JWT, secure coding, Zod, and middleware.
-
-- [x] Add a `Role` enum whose IDs match the database.
-- [x] Create `UserModel` with Zod validation.
-- [x] Create `CredentialsModel` with Zod validation.
-- [x] Require all registration fields.
-- [x] Validate email format.
-- [x] Require passwords to contain at least four characters.
-- [x] Implement `isEmailTaken` using a parameterized SQL query.
-- [x] Force every public registration to receive the User role on the server.
-- [x] Hash the password before storing it.
-- [x] Hash the submitted login password before comparing it.
-- [x] Generate a JWT after successful registration and login.
-- [x] Exclude the password hash from the JWT payload and API responses.
-- [x] Implement logged-in and admin middleware.
-- [x] Add `POST /api/auth/register`.
-- [x] Add `POST /api/auth/login`.
-- [x] Add both requests to the Postman collection.
-
-Verification gate:
-
-- [x] Registration returns HTTP 201 and a valid token.
-- [x] A duplicate email returns HTTP 409.
-- [x] Invalid input returns HTTP 422.
-- [x] Incorrect credentials return HTTP 401.
-- [x] A new registrant cannot choose the Admin role by changing the request body.
-- [x] The database never contains a plain-text password.
-
-Suggested commit: `feat: add registration login and role authorization`
-
-## Phase 4 — Build the vacations read API
-
-Relevant lessons: Layered REST API, SQL joins, JWT, and handling images.
-
-- [x] Create `VacationModel` with all database and response fields.
-- [x] Add Zod validation for destination, description, dates, and price.
-- [x] Add response-only fields for image URL, like count, and whether the current user liked it.
-- [x] Write one SQL query that returns vacations ordered by start date ascending.
-- [x] Use `LEFT JOIN` so vacations with zero likes are returned.
-- [x] Return the total likes for each vacation.
-- [x] Return whether the logged-in user liked each vacation.
-- [x] Build image URLs without exposing server file paths.
-- [x] Add `GET /api/vacations` as a logged-in route.
-- [x] Add `GET /api/vacations/:id` for the edit screen.
-- [x] Add the image-serving route.
-- [x] Add all requests to Postman.
-
-Verification gate:
-
-- [x] An unauthenticated request returns HTTP 401.
-- [x] The response is sorted by `startDate ASC`.
-- [x] Every item has `likesCount` and `isLiked`.
-- [x] An unknown vacation ID returns HTTP 404.
-- [x] Each returned image URL loads successfully.
-
-Suggested commit: `feat: add protected vacation queries and images`
-
-## Phase 5 — Build the likes API
-
-Relevant lessons: parameterized SQL, junction tables, JWT, and Redux service patterns.
-
-- [ ] Extract the current user ID from a verified JWT—not from the request body.
-- [ ] Add `POST /api/vacations/:vacationId/likes`.
-- [ ] Add `DELETE /api/vacations/:vacationId/likes`.
-- [ ] Prevent admins from liking vacations on the backend.
-- [ ] Handle repeated like/unlike requests predictably.
-- [ ] Return HTTP 404 for a nonexistent vacation.
-- [ ] Add both requests to Postman.
-
-Verification gate:
-
-- [ ] A user can like a vacation once.
-- [ ] The like count increases by one.
-- [ ] Removing the like decreases the count by one.
-- [ ] A second identical like does not create a duplicate row.
-- [ ] An admin receives HTTP 403 when attempting to like or unlike.
-
-Suggested commit: `feat: add like and unlike endpoints`
-
-## Phase 6 — Build the admin vacations API
-
-Relevant lessons: add/update/delete, React forms, image handling, and admin middleware.
-
-- [ ] Add an insert-specific validation method.
-- [ ] Require an image when adding a vacation.
-- [ ] Reject past start dates when adding a vacation.
-- [ ] Reject an end date earlier than the start date.
-- [ ] Reject prices below 0 or above 10,000.
-- [ ] Save uploaded images in the backend images folder.
-- [ ] Store only the generated image filename in MySQL.
-- [ ] Add `POST /api/vacations` as an admin-only route.
-- [ ] Add update-specific validation that permits past dates.
-- [ ] Make the image optional during an update.
-- [ ] Keep the old image when no replacement is uploaded.
-- [ ] Replace and remove the old file when a new image is uploaded.
-- [ ] Add `PUT /api/vacations/:id` as an admin-only route.
-- [ ] Delete the stored image when deleting a vacation.
-- [ ] Add `DELETE /api/vacations/:id` as an admin-only route.
-- [ ] Add all requests to Postman.
-
-Verification gate:
-
-- [ ] A normal user receives HTTP 403 for every admin mutation.
-- [ ] Add returns HTTP 201 and the complete stored vacation.
-- [ ] Update returns the updated vacation.
-- [ ] Delete returns HTTP 204.
-- [ ] Invalid price/date/image requests fail without leaving orphan files.
-
-Suggested commit: `feat: add admin vacation CRUD and image management`
-
-## Phase 7 — Adapt the frontend foundation
-
-Relevant lessons: Vite, components, routing, services, Redux, notifications, and auth.
-
-- [ ] Replace generic template names and components with vacation-domain names.
-- [ ] Create frontend models for User, Credentials, Vacation, Like, and report rows.
-- [ ] Add a single API base URL to the frontend `.env` file.
-- [ ] Configure the Axios JWT interceptor once at startup.
-- [ ] Create the Redux store and typed application state.
-- [ ] Create a user slice.
-- [ ] Create a vacations slice.
-- [ ] Restore the logged-in user from the stored JWT on page refresh.
-- [ ] Create authentication and admin guard hooks/components.
-- [ ] Define every required route before building page details.
-- [ ] Make the navigation menu depend on guest/user/admin state.
-- [ ] Display the logged-in user’s full name.
-
-Verification gate:
-
-- [ ] The frontend builds without TypeScript errors.
-- [ ] Refreshing the browser preserves a valid login.
-- [ ] Guests, users, and admins see different menus.
-- [ ] Direct navigation to a protected URL is blocked correctly.
-
-Suggested commit: `refactor: create frontend state routing and access foundation`
-
-## Phase 8 — Build registration and login screens
-
-Relevant lessons: React Hook Form, MUI, notifications, auth services, and routing.
-
-- [ ] Build the registration form with all required fields.
-- [ ] Add client-side email validation.
-- [ ] Add the four-character minimum password validation.
-- [ ] Send registration through the auth service.
-- [ ] Store the returned token and initialize Redux.
-- [ ] Navigate to the vacations page after registration.
-- [ ] Build the login form with the same email/password rules.
-- [ ] Display meaningful backend errors.
-- [ ] Navigate to the vacations page after login.
-- [ ] Implement logout and clear both local storage and Redux.
-
-Verification gate:
-
-- [ ] Invalid forms do not send requests.
-- [ ] Registration, login, refresh, and logout all work.
-- [ ] Wrong credentials produce a visible error.
-- [ ] The UI never stores or logs the user’s password.
-
-Suggested commit: `feat: add frontend authentication flow`
-
-## Phase 9 — Build the vacation cards, filters, and pagination
-
-Relevant lessons: lists, props, state, effects, services, Redux, and conditional rendering.
-
-- [ ] Build a reusable vacation card.
-- [ ] Display destination, description, dates, price, image, and like count.
-- [ ] Display whether the current user liked each vacation.
-- [ ] Fetch vacations through a frontend service.
-- [ ] Store or update fetched vacations consistently in Redux.
-- [ ] Add loading, error, empty, and success states.
-- [ ] Add Like/Unlike behavior with an immediate UI update.
-- [ ] Add the All filter.
-- [ ] Add the My Likes filter.
-- [ ] Add the Active Now filter.
-- [ ] Add the Not Started filter.
-- [ ] Display exactly nine cards per page.
-- [ ] Add pagination controls.
-- [ ] Reset to page one whenever the selected filter changes.
-- [ ] Prevent an empty page after filtering or deleting data.
-
-Verification gate:
-
-- [ ] Every filter matches the specification exactly.
-- [ ] Pagination is calculated from the filtered results.
-- [ ] Like counts and icons remain correct after switching filters/pages.
-- [ ] The UI remains usable on narrow screens.
-
-Suggested commit: `feat: add vacation cards filters likes and pagination`
-
-## Phase 10 — Build the admin screens
-
-Relevant lessons: protected routes, forms, multipart requests, add/update/delete.
-
-- [ ] Show add/edit/delete controls only to admins.
-- [ ] Ensure the normal-user card never displays admin controls.
-- [ ] Build the Add Vacation screen.
-- [ ] Reproduce all backend validations in the form for quick feedback.
-- [ ] Send the add request as `FormData`.
-- [ ] Build the Edit Vacation screen with existing values.
-- [ ] Display the current image and make replacement optional.
-- [ ] Send the update request as `FormData`.
-- [ ] Ask for confirmation before deletion.
-- [ ] Do not delete when the admin cancels.
-- [ ] Update the UI/Redux after successful add, edit, or delete.
-
-Verification gate:
-
-- [ ] Admin CRUD works without manually refreshing.
-- [ ] Past dates are rejected on add but allowed on edit.
-- [ ] The server still blocks admin URLs when the frontend is bypassed.
-
-Suggested commit: `feat: add protected admin vacation management`
-
-## Phase 11 — Build reports and CSV export
-
-Relevant lessons: SQL aggregation, REST services, charts, and file downloads.
-
-- [ ] Create an admin-only report query using `LEFT JOIN`, `COUNT`, and `GROUP BY`.
+# Vacation Resort — Project #3 Checklist
+
+Deadline: 14 October 2026
+
+## 0. Workspace setup
+- [x] Create Database, Backend, and Frontend folders.
+- [x] Copy and configure the course template.
+- [x] Configure .gitignore and .env.example.
+- [x] Install dependencies and run backend/frontend.
+- [x] Initialize Git and commit the clean template.
+
+## 1. Database
+- [x] Create vacationDb.
+- [x] Create roles, users, vacations, and likes tables.
+- [x] Configure primary keys, foreign keys, and constraints.
+- [x] Set User = 1 and Admin = 2.
+- [x] Prevent duplicate emails and duplicate likes.
+- [x] Configure cascading deletion for likes.
+- [x] Seed at least 12 vacations.
+- [x] Include past, current, and future vacations.
+- [x] Verify constraints and queries.
+- [x] Export the initial database.
+- [ ] Refresh the export before submission.
+
+## 2. Backend foundation
+- [x] Adapt the template to the vacation project.
+- [x] Separate controllers, services, models, utilities, and middleware.
+- [x] Configure environment variables and database connection.
+- [x] Add /api/health.
+- [x] Verify middleware order and unknown-route handling.
+
+## 3. Authentication
+- [x] Create Role enum, UserModel, and CredentialsModel.
+- [x] Add minimum password length of 4.
+- [x] Implement isEmailTaken.
+- [x] Obtain and use regular-user and admin tokens.
+- [x] Implement verifyLoggedIn and verifyAdmin.
+- [x] Chain authentication before admin authorization.
+- [x] Verify regular users receive 403 on admin CRUD routes.
+- [ ] Confirm missing tokens receive 401 on all protected routes.
+- [ ] Confirm expired/invalid tokens are rejected.
+- [ ] Verify registration requires every field and a valid email.
+- [ ] Verify duplicate-email registration is rejected.
+- [ ] Verify registration always assigns the User role.
+- [ ] Verify password hashing during registration and login.
+- [ ] Verify authentication responses exclude password hashes.
+- [ ] Verify login validation and incorrect-credentials handling.
+
+## 4. Vacation retrieval
+- [x] Implement GET all vacations.
+- [x] Sort vacations by startDate ascending.
+- [x] Include likesCount and the current user's isLiked value.
+- [x] Include imageUrl.
+- [x] Implement GET one vacation.
+- [x] Return 404 for a nonexistent vacation.
+- [x] Serve vacation images.
+- [ ] Confirm numeric price conversion in GET-all results.
+- [ ] Validate vacation IDs before passing them to SQL.
+
+## 5. Admin vacation management
+- [x] Add a vacation with an uploaded image.
+- [x] Store image files on the server and filenames in MySQL.
+- [x] Update a vacation without replacing its image.
+- [x] Update a vacation with a replacement image.
+- [x] Remove the old image after successful replacement.
+- [x] Delete a vacation and its image.
+- [x] Verify repeated deletion returns 404.
+- [x] Protect add, update, and delete routes.
+- [x] Test the add → update → delete flow in Postman.
+
+## 6. Vacation validation
+- [x] Reject empty destination and description.
+- [x] Reject prices below 0 or above 10,000.
+- [x] Reject empty prices instead of converting them to 0.
+- [x] Reject an end date earlier than the start date.
+- [x] Require an image when adding.
+- [x] Allow editing without uploading a new image.
+- [x] Add the past-date restriction to creation only.
+- [x] Verify editing accepts past dates.
+- [ ] Confirm past-date creation returns the date-specific error.
+- [ ] Confirm missing or malformed dates are rejected.
+- [ ] Confirm explicitly entered price 0 is accepted.
+
+## 7. Likes and permissions
+- [x] Implement adding and removing likes.
+- [x] Obtain the user ID from the authenticated token.
+- [x] Add verifyUser to both like routes.
+- [x] Verify admins cannot like or unlike.
+- [x] Verify regular users can like and unlike.
+- [x] Verify likesCount and isLiked change correctly.
+- [ ] Verify repeated likes cannot create duplicate records.
+- [ ] Verify liking a nonexistent vacation is handled correctly.
+
+## 8. Admin reports — NEXT
+- [ ] Implement getVacationsReport in the service.
+- [ ] Include each vacation's destination and like count.
 - [ ] Include vacations with zero likes.
-- [ ] Add an admin-only JSON report endpoint.
-- [ ] Build the chart with destination on the X-axis and likes on the Y-axis.
-- [ ] Make labels readable when destination names are long.
-- [ ] Generate a valid CSV containing destination and like count.
-- [ ] Escape CSV values correctly.
-- [ ] Add an admin-only CSV download endpoint.
-- [ ] Add report and CSV requests to Postman.
+- [ ] Add an admin-only report controller route.
+- [ ] Test report results and permissions in Postman.
+- [ ] Build the report chart: destination on X, likes on Y.
+- [ ] Add CSV download containing destinations and like counts.
+- [ ] Restrict report and CSV access to admins.
 
-Verification gate:
+## 9. Frontend authentication and navigation
+- [ ] Build registration and login pages.
+- [ ] Add required-field, email, and password validation.
+- [ ] Display meaningful authentication errors.
+- [ ] Redirect to vacations after registration/login.
+- [ ] Manage authentication state and logout.
+- [ ] Protect registered-user and admin pages.
+- [ ] Show navigation appropriate to the user's role.
+- [ ] Display the logged-in user's full name.
 
-- [ ] The chart values match direct SQL results.
-- [ ] The downloaded CSV opens correctly in Excel.
-- [ ] A normal user receives HTTP 403 for report and CSV endpoints.
+## 10. Frontend vacation pages
+- [ ] Display vacations as cards with all required details.
+- [ ] Display like counts and current-user like status.
+- [ ] Implement like/unlike actions for regular users.
+- [ ] Sort by start date ascending.
+- [ ] Display 9 vacations per page with pagination.
+- [ ] Add filters: all, liked, active, and upcoming.
+- [ ] Build the admin vacation view without like/unlike controls.
+- [ ] Build add and edit forms with the required validation.
+- [ ] Show the existing image when editing.
+- [ ] Add delete confirmation.
 
-Suggested commit: `feat: add vacation likes report and csv export`
+## 11. AI recommendation
+- [ ] Add a protected backend endpoint for destination advice.
+- [ ] Build the destination-input page.
+- [ ] Display the AI recommendation.
+- [ ] Restrict access to logged-in users.
+- [ ] Handle loading and errors.
 
-## Phase 12 — Build the AI recommendation page
+## 12. MCP database questions
+- [ ] Build the backend MCP server.
+- [ ] Connect it to the vacation database.
+- [ ] Support questions about database information.
+- [ ] Build the question-and-answer page.
+- [ ] Restrict access to logged-in users.
+- [ ] Test answers against actual database results.
 
-Relevant lessons: OpenAI API and secure coding.
-
-- [ ] Keep the OpenAI API key only in the backend `.env` file.
-- [ ] Never use `dangerouslyAllowBrowser` or a `VITE_OPENAI_API_KEY`.
-- [ ] Add a logged-in backend endpoint that accepts a destination.
-- [ ] Validate and sanitize the destination.
-- [ ] Create a focused system prompt for useful travel recommendations.
-- [ ] Handle empty or failed AI responses.
-- [ ] Build the protected frontend page.
-- [ ] Add loading, error, and answer states.
-
-Verification gate:
-
-- [ ] The browser network/devtools never exposes the OpenAI key.
-- [ ] Guests cannot access the page or endpoint.
-- [ ] A normal destination returns a useful answer.
-- [ ] Empty input is rejected before calling the AI provider.
-
-Suggested commit: `feat: add secure AI travel recommendations`
-
-## Phase 13 — Build the MCP database-question feature
-
-Relevant lessons: Building MCP Server, AI Agents, and Microservices.
-
-- [ ] Define the exact database questions the MCP tools must support.
-- [ ] Create MCP tools for vacation listings and statistics.
-- [ ] Validate every MCP tool argument with Zod.
-- [ ] Keep SQL inside services; MCP tools should call services.
-- [ ] Register the tools on the backend MCP server.
-- [ ] Register the MCP transport routes.
-- [ ] Add a protected backend AI endpoint for the user’s question.
-- [ ] Keep the AI key on the backend.
-- [ ] Build the protected Ask MCP frontend page.
-- [ ] Add loading, error, and answer states.
-- [ ] Test the specification examples: active count, average price, and future European vacations.
-
-Verification gate:
-
-- [ ] Answers are based on current database results rather than hard-coded values.
-- [ ] Changing database rows changes subsequent answers.
-- [ ] Guests cannot use the feature.
-- [ ] Logs show which MCP tool was selected for each test question.
-
-Suggested commit: `feat: add MCP vacation database assistant`
-
-## Phase 14 — Add automated tests
-
-Relevant lessons: Unit Testing and Integration Testing.
-
-- [ ] Separate test configuration from production configuration.
-- [ ] Test validation models independently.
-- [ ] Unit-test important service rules.
-- [ ] Integration-test registration and login.
-- [ ] Integration-test authentication and admin authorization.
-- [ ] Integration-test vacation reads and sorting.
-- [ ] Integration-test like/unlike behavior.
-- [ ] Integration-test admin add/edit/delete validation.
-- [ ] Ensure test data does not damage development data.
-- [ ] Add a single command that runs the complete test suite.
-
-Verification gate:
-
-- [ ] Tests pass repeatedly from a clean state.
-- [ ] At least one failure-path test exists for every major endpoint group.
-
-Suggested commit: `test: cover authentication vacations likes and admin routes`
-
-## Phase 15 — Dockerize the complete system
-
-Relevant lessons: Dockerfile and Docker Compose.
-
-- [ ] Add a backend `Dockerfile`.
-- [ ] Add a backend `.dockerignore`.
-- [ ] Add a frontend `Dockerfile`.
-- [ ] Add a frontend `.dockerignore`.
-- [ ] Add MySQL, backend, and frontend services to `compose.yaml`.
-- [ ] Put all services on the same Docker network.
-- [ ] Give MySQL a persistent volume.
-- [ ] Initialize MySQL from the project SQL file.
-- [ ] Use service names—not `localhost`—for container-to-container connections.
-- [ ] Configure ports and environment variables without committing secrets.
-- [ ] Add health checks and safe startup dependencies.
-- [ ] Confirm uploaded images persist after container recreation.
-
-Verification gate:
-
-- [ ] `docker compose up -d --build` starts the entire system.
-- [ ] Registration, login, vacation images, likes, admin actions, reports, AI, and MCP work through Docker.
-- [ ] Restarting containers does not erase database rows or uploaded images.
-
-Suggested commit: `chore: run full system with Docker Compose`
-
-## Phase 16 — Prepare the final submission
-
-- [ ] Give the root folder your full English name.
-- [ ] Confirm the root contains `Database`, `Backend`, and `Frontend`.
-- [ ] Export the final MySQL database into `Database`.
-- [ ] Export the complete Postman collection into `Backend`.
-- [ ] Add setup, environment, database, Docker, and test instructions to the root `README.md`.
-- [ ] Add the GitHub repository URL to the root `README.md`.
-- [ ] Push the final code to GitHub.
-- [ ] Clone the repository into a new temporary location and test its instructions.
-- [ ] Run the complete test suite.
-- [ ] Run the production builds.
-- [ ] Run the exact required Docker command from a clean state.
-- [ ] Confirm `.env`, API keys, database passwords, and JWT secrets are not committed.
-- [ ] Remove both `node_modules` folders from the submission copy.
-- [ ] Remove generated `dist`/`build` folders unless the instructor requests them.
-- [ ] Confirm there are at least 12 vacations and that all images load.
-- [ ] Test the system as Guest, User, and Admin.
-- [ ] Create one ZIP from the main project folder.
-- [ ] Open the ZIP and confirm all required files are present.
-- [ ] Submit before 14 October 2026.
-
-Final gate:
-
-- [ ] The project works from the README alone on a clean computer.
-- [ ] Every item in the assignment specification can be demonstrated.
-- [ ] No secret or unnecessary generated dependency is inside the ZIP or GitHub repository.
+## 13. Docker and submission
+- [ ] Configure Docker for the full application.
+- [ ] Verify docker compose up -d --build starts the system.
+- [ ] Run a final end-to-end check for User and Admin.
+- [ ] Keep at least 12 vacations with realistic data.
+- [ ] Push the project to GitHub.
+- [ ] Include the repository link in the root README.md.
+- [ ] Export the final database into Database.
+- [ ] Export the Postman collection into Backend.
+- [ ] Name the root folder with your full name in English.
+- [ ] Include Database, Backend, and Frontend folders.
+- [ ] Remove node_modules from the submission copy.
+- [ ] ZIP the root folder and submit by 14 October 2026.

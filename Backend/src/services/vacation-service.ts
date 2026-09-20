@@ -4,42 +4,42 @@ import { appConfig } from "../utils/app-config";
 import { dal } from "../utils/dal";
 import { StatusCode } from "../models/enums";
 import { ClientError } from "../models/client-error";
+import { saver } from "smart-saver";
 
 class VacationService {
     // Get all vacations:
-    public async getAllVacations(userId: any): Promise<VacationModel[]> {
+    public async getAllVacations(userId: number): Promise<VacationModel[]> {
 
-        const sql = ` select *  from vacations ORDER BY startDate ASC `;
+        const sql = `
+        select vacations.*,
+        concat(?, vacations.imageFileName) as imageUrl,
+       (select count(*) from likes where likes.vacationId = vacations.vacationId) as likesCount,
+        exists(select 1 from likes where likes.vacationId = vacations.vacationId and likes.userId = ?) as isLiked
+    from vacations
+    order by vacations.startDate asc
+    `;
 
-        const result = await dal.execute(sql) as RowDataPacket[];
+        const result = await dal.execute(sql, [appConfig.vacationImagesBaseUrl, userId]) as RowDataPacket[];
 
-        return result as VacationModel[];
+        return result.map(vacation => ({ ...vacation, isLiked: Boolean(vacation.isLiked) })) as VacationModel[];
     }
 
     // Get one vacation:
     public async getOneVacation(vacationId: number): Promise<VacationModel> {
-        // Create SQL:
         const sql = `
-        select *, concat(?, imageFileName) as imageUrl from vacations where vacationId = ?
+        select *, concat(?, imageFileName) as imageUrl
+        from vacations where vacationId = ?
     `;
         const values = [appConfig.vacationImagesBaseUrl, vacationId];
-        // Execute:
         const vacations = await dal.execute(sql, values) as VacationModel[];
-
-        // Extract one vacation:
         const vacation = vacations[0];
 
-        // If no such vacation:
         if (!vacation) {
             throw new ClientError(StatusCode.NotFound, `Vacation ${vacationId} not found.`);
         }
 
-        // Convert MySQL values:
         vacation.price = +vacation.price;
-        vacation.likesCount = +vacation.likesCount!;
-        vacation.isLiked = !!vacation.isLiked;
 
-        // Return:
         return vacation;
     }
 
@@ -60,14 +60,38 @@ class VacationService {
         return Boolean(result[0].vacationExists);
     }
 
-    public async addVacation(
-        vacation: VacationModel
-    ): Promise<VacationModel> {
+    public async addVacation(vacation: VacationModel): Promise<VacationModel> {
+        vacation.validate();
+
+        if (!vacation.image || Array.isArray(vacation.image)) {
+            throw new ClientError(
+                StatusCode.UnprocessableContent,
+                "Please upload exactly one image."
+            );
+        }
+        const now = new Date();
+        const today = [
+            now.getFullYear(),
+            String(now.getMonth() + 1).padStart(2, "0"),
+            String(now.getDate()).padStart(2, "0")
+        ].join("-");
+
+        if (vacation.startDate < today) {
+            throw new ClientError(
+                StatusCode.UnprocessableContent,
+                "Start date cannot be in the past."
+            );
+        }
+
+        const imageFileName = await saver.save(vacation.image);
+        if (!imageFileName) {
+            throw new Error("Failed to save vacation image.");
+        }
+        vacation.imageFileName = imageFileName;
 
         const sql = `
-            INSERT INTO vacations
-            (destination, description, startDate, endDate, price, imageFileName)
-            VALUES (?, ?, ?, ?, ?, ?)
+            insert into vacations (destination, description, startDate, endDate, price, imageFileName)
+            values (?, ?, ?, ?, ?, ?)
         `;
 
         const values = [
@@ -76,28 +100,59 @@ class VacationService {
             vacation.startDate,
             vacation.endDate,
             vacation.price,
-            vacation.imageFileName
+            imageFileName
         ];
 
-        const info = await dal.execute(
-            sql,
-            values
-        ) as OkPacketParams;
+        let info: OkPacketParams;
+
+        try {
+            info = await dal.execute(sql, values) as OkPacketParams;
+        }
+        catch (error) {
+            await saver.delete(imageFileName);
+            throw error;
+        }
 
         return this.getOneVacation(info.insertId!);
     }
 
     public async updateVacation(vacationId: number, vacation: VacationModel): Promise<VacationModel> {
+        vacation.validate();
+
+        if (Array.isArray(vacation.image)) {
+            throw new ClientError(
+                StatusCode.UnprocessableContent,
+                "Please upload only one image."
+            );
+        }
+
+        const existingVacation = await this.getOneVacation(vacationId);
+        const oldImageName = existingVacation.imageFileName;
+        let imageFileName = oldImageName;
+        let newImageName: string | null = null;
+
+        if (vacation.image) {
+            newImageName = await saver.save(vacation.image);
+
+            if (!newImageName) {
+                throw new Error("Failed to save vacation image.");
+            }
+
+            imageFileName = newImageName;
+        }
+
+        if (!imageFileName) {
+            throw new ClientError(
+                StatusCode.UnprocessableContent,
+                "An image is required."
+            );
+        }
+
         const sql = `
-            UPDATE vacations
-            SET destination = ?,
-                description = ?,
-                startDate = ?,
-                endDate = ?,
-                price = ?,
-                imageFileName = ?
-            where vacationId = ?
-        `;
+        update vacations
+        set destination = ?, description = ?, startDate = ?, endDate = ?, price = ?, imageFileName = ?
+        where vacationId = ?
+    `;
 
         const values = [
             vacation.destination,
@@ -105,21 +160,54 @@ class VacationService {
             vacation.startDate,
             vacation.endDate,
             vacation.price,
-            vacation.imageFileName,
+            imageFileName,
             vacationId
         ];
 
-        await dal.execute(sql, values);
+        try {
+            await dal.execute(sql, values);
+        }
+        catch (error) {
+            if (newImageName) {
+                await saver.delete(newImageName);
+            }
+
+            throw error;
+        }
+
+        if (newImageName && oldImageName && newImageName !== oldImageName) {
+            await saver.delete(oldImageName);
+        }
 
         return this.getOneVacation(vacationId);
     }
-
+    // Delete Vacation:
     public async deleteVacation(vacationId: number): Promise<void> {
-        const sql = `delete from vacations where vacationId = ?
-        `;
+        const imageName = await this.getImageName(vacationId);
 
-        await dal.execute(sql, [vacationId]);
+        const sql = "delete from vacations where vacationId = ?";
+        const info = await dal.execute(sql, [vacationId]) as OkPacketParams;
+
+        if (info.affectedRows === 0) {
+            throw new ClientError(
+                StatusCode.NotFound,
+                `Vacation ${vacationId} not found.`
+            );
+        }
+
+        if (imageName) {
+            await saver.delete(imageName);
+        }
+    }
+    private async getImageName(vacationId: number): Promise<string | null> {
+        const sql = "select imageFileName from vacations where vacationId = ?";
+        const vacations = await dal.execute(sql, [vacationId]) as VacationModel[];
+        const vacation = vacations[0];
+
+        if (!vacation) return null;
+        return vacation.imageFileName ?? null;
     }
 }
+
 
 export const vacationService = new VacationService();
