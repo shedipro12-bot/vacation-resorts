@@ -39,11 +39,11 @@ Deadline: 14 October 2026
 - [x] Verify regular users receive 403 on admin CRUD routes.
 - [ ] Confirm missing tokens receive 401 on all protected routes.
 - [ ] Confirm expired/invalid tokens are rejected.
-- [ ] Verify registration requires every field and a valid email.
-- [ ] Verify duplicate-email registration is rejected.
-- [ ] Verify registration always assigns the User role.
-- [ ] Verify password hashing during registration and login.
-- [ ] Verify authentication responses exclude password hashes.
+- [x] Verify registration requires every field and a valid email.
+- [x] Verify duplicate-email registration is rejected.
+- [x] Verify registration always assigns the User role.
+- [x] Verify password hashing during registration and login.
+- [x] Verify authentication responses exclude password hashes.
 - [ ] Verify login validation and incorrect-credentials handling.
 
 ## 4. Vacation retrieval
@@ -77,7 +77,7 @@ Deadline: 14 October 2026
 - [x] Allow editing without uploading a new image.
 - [x] Add the past-date restriction to creation only.
 - [x] Verify editing accepts past dates.
-- [ ] Confirm past-date creation returns the date-specific error.
+- [x] Confirm past-date creation returns the date-specific error.
 - [ ] Confirm missing or malformed dates are rejected.
 - [ ] Confirm explicitly entered price 0 is accepted.
 

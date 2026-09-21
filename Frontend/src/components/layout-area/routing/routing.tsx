@@ -4,6 +4,7 @@ import { Data } from "../../pages-area/data/data";
 import { Home } from "../../pages-area/home/home";
 import { Page404 } from "../../pages-area/page404/page404";
 import { Signup } from "../../pages-area/signup/signup";
+import { Login } from "../../pages-area/login/login";
 
 export function Routing() {
 
@@ -23,6 +24,7 @@ export function Routing() {
             <Route path="/about" element={<About />} />
             {/* Sign up */}
             <Route path="/sign-up" element={<Signup />} />
+            <Route path="/login" element={<Login />} />
 
             {/* Page not found: */}
             <Route path="*" element={<Page404 />} />
