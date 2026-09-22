@@ -88,7 +88,7 @@ Deadline: 14 October 2026
 - [x] Verify admins cannot like or unlike.
 - [x] Verify regular users can like and unlike.
 - [x] Verify likesCount and isLiked change correctly.
-- [ ] Verify repeated likes cannot create duplicate records.
+- [x] Verify repeated likes cannot create duplicate records.
 - [ ] Verify liking a nonexistent vacation is handled correctly.
 
 ## 8. Admin reports — NEXT

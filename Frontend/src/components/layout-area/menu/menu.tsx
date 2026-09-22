@@ -12,6 +12,7 @@ export function Menu() {
             
             <NavLink to="/about">About</NavLink>
             <NavLink to="/sign-up">Sign-up</NavLink>
+            <NavLink to="/login">Login</NavLink>
 
         </div>
     );
