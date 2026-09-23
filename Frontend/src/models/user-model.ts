@@ -1,5 +1,9 @@
 import { Role } from "./enums";
-export class UserModel {
-	
+export type UserModel = {
+    userId: number,
+    firstName: string;
+    lastName: string;
+    email: string;
+    roleId: Role
 }
-Role.Admin
+

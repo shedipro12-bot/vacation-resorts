@@ -22,11 +22,11 @@ export function Login() {
             <h1>Sign in</h1>
 
             <form onSubmit={handleSubmit}>
-                <label htmlFor ="email">Email:</label>
-                <input    id="email" type="email" value={email} required    />
+                <label htmlFor="email">Email:</label>
+                <input id="email" type="email" value={email} required onChange={event => setEmail(event.target.value)} aria-required />
 
                 <label htmlFor="password">Password:</label>
-                <input  id="password" type="password"value={password}onChange={event => setPassword(event.target.value)}  required    />
+                <input id="password" type="password" value={password} onChange={event => setPassword(event.target.value)} required />
 
                 <button type="submit">Log in</button>
             </form>
