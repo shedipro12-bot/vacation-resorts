@@ -2,19 +2,29 @@ import { useState } from "react";
 import type { FormEvent } from "react";
 import "./login.css";
 import { CredentialsModel } from "../../../models/credential-model";
-
+import { userService } from "../../../services/user-service";
+import { useNavigate } from "react-router-dom";
+import { notify } from "../../../utils/notify";
 // Displays the login form and keeps track of its input values.
 export function Login() {
+    const navigate = useNavigate();
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     // const [send, handleSumbit]
     // Prevents page reload and prepares the credentials for the login request.
-    function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    async function handleSubmit(event: FormEvent<HTMLFormElement>) {
         event.preventDefault();
+        try {
+            const credentials: CredentialsModel = { email, password }
+            await userService.login(credentials);
 
-        const credentials: CredentialsModel = { email, password };
+            navigate("/vacations");
+        }
+        catch (error) {
+            notify.error(error)
+        }
 
-        // Next: send credentials through the authentication service.
+        // Next: send credentials through the authentication service.\
     }
 
     return (

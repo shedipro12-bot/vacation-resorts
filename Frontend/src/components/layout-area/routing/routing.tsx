@@ -1,32 +1,33 @@
 import { Navigate, Route, Routes } from "react-router-dom";
-import { About } from "../../pages-area/about/about";
-import { Home } from "../../pages-area/home/home";
-import { Page404 } from "../../pages-area/page404/page404";
-import { Signup } from "../../pages-area/signup/signup";
+import { Vacations } from "../../pages-area/vacations/vacations";
+import { AddVacation } from "../../pages-area/add-vacation/add-vacation";
+import { EditVacation } from "../../pages-area/edit-vacation/edit-vacation";
+import { AdminReport } from "../../pages-area/admin-report/admin-report";
+import { AI } from "../../pages-area/ai/ai";
+import { Mcp } from "../../pages-area/mcp/mcp";
 import { Login } from "../../pages-area/login/login";
+import { Signup } from "../../pages-area/signup/signup";
+import { Page404 } from "../../pages-area/page404/page404";
 
+// Maps browser URLs to page components; each protected page checks access.
 export function Routing() {
-
     return (
         <Routes>
-
-            {/* Default Route: */}
-            <Route path="/" element={<Navigate to="/home" />} />
-
-            {/* Home: */}
-            <Route path="/home" element={<Home />} />
-
-
-            {/* About:  */}
-            <Route path="/about" element={<About />} />
-            {/* Sign up */}
-            <Route path="/sign-up" element={<Signup />} />
-            {/* Login */}
+            {/* Vacations */}
+            <Route path="/" element={<Navigate to="/vacations" replace />}/>
+            <Route path="/vacations" element={<Vacations />} />
+            <Route path="/vacations/new" element={<AddVacation />} />
+            <Route  path="/vacations/edit/:vacationId" element={<EditVacation />}
+            />
+                {/* Signup/Login */}
             <Route path="/login" element={<Login />} />
+            <Route path="/sign-up" element={<Signup />} />
 
-            {/* Page not found: */}
+            <Route path="/admin-report" element={<AdminReport />} />
+            <Route path="/ai" element={<AI />} />
+            <Route path="/mcp" element={<Mcp />} />
+
             <Route path="*" element={<Page404 />} />
-
         </Routes>
     );
 }

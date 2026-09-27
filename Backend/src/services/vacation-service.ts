@@ -18,10 +18,8 @@ class VacationService {
     from vacations
     order by vacations.startDate asc
     `;
-
         const result = await dal.execute(sql, [appConfig.vacationImagesBaseUrl, userId]) as RowDataPacket[];
-
-        return result.map(vacation => ({ ...vacation, isLiked: Boolean(vacation.isLiked) })) as VacationModel[];
+        return result.map(vacation => ({ ...vacation, price: Number(vacation.price), likesCount: Number(vacation.likesCount), isLiked: Boolean(vacation.isLiked) })) as VacationModel[];
     }
 
     // Get one vacation:
@@ -94,14 +92,7 @@ class VacationService {
             values (?, ?, ?, ?, ?, ?)
         `;
 
-        const values = [
-            vacation.destination,
-            vacation.description,
-            vacation.startDate,
-            vacation.endDate,
-            vacation.price,
-            imageFileName
-        ];
+        const values = [vacation.destination, vacation.description, vacation.startDate, vacation.endDate, vacation.price, imageFileName];
 
         let info: OkPacketParams;
 
@@ -120,12 +111,8 @@ class VacationService {
         vacation.validate();
 
         if (Array.isArray(vacation.image)) {
-            throw new ClientError(
-                StatusCode.UnprocessableContent,
-                "Please upload only one image."
-            );
+            throw new ClientError(StatusCode.UnprocessableContent, "Please upload only one image.");
         }
-
         const existingVacation = await this.getOneVacation(vacationId);
         const oldImageName = existingVacation.imageFileName;
         let imageFileName = oldImageName;
@@ -153,16 +140,7 @@ class VacationService {
         set destination = ?, description = ?, startDate = ?, endDate = ?, price = ?, imageFileName = ?
         where vacationId = ?
     `;
-
-        const values = [
-            vacation.destination,
-            vacation.description,
-            vacation.startDate,
-            vacation.endDate,
-            vacation.price,
-            imageFileName,
-            vacationId
-        ];
+        const values = [vacation.destination, vacation.description, vacation.startDate, vacation.endDate, vacation.price, imageFileName, vacationId];
 
         try {
             await dal.execute(sql, values);

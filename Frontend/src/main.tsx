@@ -5,7 +5,8 @@ import { Layout } from "./components/layout-area/layout/layout";
 import { store } from "./redux/store";
 import { interceptor } from "./utils/interceptor";
 import "./index.css";
-
+import { userService } from "./services/user-service";
+userService.restoreSession();
 // Registers the Axios interceptor before requests are sent.
 interceptor.create();
 
