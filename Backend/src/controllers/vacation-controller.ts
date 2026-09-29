@@ -23,6 +23,7 @@ class VacationController {
         this.router.post("/api/vacations", securityMiddleware.verifyLoggedIn, securityMiddleware.verifyAdmin, this.addVacation);
         this.router.put("/api/vacations/:vacationId", securityMiddleware.verifyLoggedIn, securityMiddleware.verifyAdmin, this.updateVacation);
         this.router.delete("/api/vacations/:vacationId", securityMiddleware.verifyLoggedIn, securityMiddleware.verifyAdmin, this.removeVacation);
+        this.router.get("/api/vacations/reports", securityMiddleware.verifyLoggedIn, securityMiddleware.verifyAdmin, this.getVacationsReport);
     }
     // Get all vacations:
     private async getAllVacations(request: Request, response: Response): Promise<void> {
@@ -86,6 +87,11 @@ class VacationController {
         const imageName = request.params.imageName.toString();
         const filePath = saver.getFilePath(imageName);
         response.sendFile(filePath);
+    }
+    // Returns report data after authentication and admin authorization.
+    private async getVacationsReport(request: Request, response: Response): Promise<void> {
+        const report = await vacationService.getVacationsReport();
+        response.json(report);
     }
 
 

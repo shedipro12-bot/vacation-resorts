@@ -68,7 +68,7 @@ class SecurityMiddleware {
         // General rate-limit:
         server.use(expressRateLimit({
             windowMs: 1000, // Time window in milliseconds.
-            limit: 5, // How many requests allowed in that window.
+            limit: 25, // How many requests allowed in that window.
         }));
 
     }
@@ -85,10 +85,7 @@ class SecurityMiddleware {
         const user = (request as any).user;
 
         if (user.roleId !== 1) {
-            next(new ClientError(
-                StatusCode.Forbidden,
-                "Only regular users can like or unlike vacations."
-            ));
+            next(new ClientError(StatusCode.Forbidden, "Only regular users can like or unlike vacations."));
             return;
         }
 

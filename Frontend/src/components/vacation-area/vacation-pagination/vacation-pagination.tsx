@@ -1,11 +1,34 @@
-import "./vacation-pagination.css";
+type VacationPaginationProps = {
+    currentPage: number;
+    totalPages: number;
+    onPageChange: (page: number) => void;
+};
 
-export function VacationPagination() {
+// Displays page controls and reports page changes to the parent.
+export function VacationPagination(props: VacationPaginationProps) {
+    if (props.totalPages <= 1) return null;
+
     return (
-        <div className="VacationPagination">
+        <nav className="VacationPagination" aria-label="Vacation pages">
+            <button
+                type="button"
+                disabled={props.currentPage === 1}
+                onClick={() => props.onPageChange(props.currentPage - 1)}
+            >
+                Previous
+            </button>
 
-			<p>VacationPagination Component</p>
+            <span>
+                Page {props.currentPage} of {props.totalPages}
+            </span>
 
-        </div>
+            <button
+                type="button"
+                disabled={props.currentPage === props.totalPages}
+                onClick={() => props.onPageChange(props.currentPage + 1)}
+            >
+                Next
+            </button>
+        </nav>
     );
 }

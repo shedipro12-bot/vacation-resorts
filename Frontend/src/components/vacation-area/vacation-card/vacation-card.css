@@ -1,3 +1,159 @@
 .VacationCard {
-	
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    height: 100%;
+    overflow: hidden;
+    background: #fff;
+    color: #183342;
+    border: 1px solid #e2eaf0;
+    border-radius: 18px;
+    box-shadow: 0 4px 18px rgb(21 62 82 / 7%);
+    transition: transform 180ms ease, box-shadow 180ms ease;
+}
+
+.VacationCard:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 28px rgb(21 62 82 / 13%);
+}
+
+.VacationCard > img {
+    display: block;
+    width: 100%;
+    height: 210px;
+    object-fit: cover;
+}
+
+.VacationCard h2 {
+    margin: 0;
+    color: #153e52;
+    font-size: 1.25rem;
+    line-height: 1.4;
+    overflow-wrap: anywhere;
+}
+
+.VacationCard .CardBody {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    gap: 14px;
+    padding: 22px;
+}
+
+.VacationCard .CardDescription {
+    margin: 0;
+    color: #607582;
+    font-size: 0.95rem;
+    line-height: 1.65;
+    overflow-wrap: anywhere;
+}
+
+.VacationCard .CardDates {
+    margin: auto 0 0;
+    padding: 12px;
+    background: #f4f7fa;
+    border-radius: 10px;
+    color: #526975;
+    font-size: 0.85rem;
+    line-height: 1.6;
+}
+
+.VacationCard .CardPrice {
+    margin: 0;
+    color: #087f8c;
+    font-size: 1.5rem;
+    font-weight: 750;
+}
+
+.VacationCard .CardFooter {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+    padding-top: 16px;
+    border-top: 1px solid #e2eaf0;
+}
+
+.VacationCard .CardActions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.VacationCard .CardActions button,
+.VacationCard .CardActions a {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 40px;
+    padding: 8px 16px;
+    border: 1px solid #153e52;
+    border-radius: 9px;
+    background: #153e52;
+    color: #fff;
+    font: inherit;
+    font-size: 0.875rem;
+    font-weight: 600;
+    text-decoration: none;
+    cursor: pointer;
+    transition: background 150ms ease, border-color 150ms ease;
+}
+
+.VacationCard .CardActions button:hover:not(:disabled),
+.VacationCard .CardActions a:hover {
+    background: #087f8c;
+    border-color: #087f8c;
+}
+
+.VacationCard .CardActions .DeleteButton {
+    background: #fff;
+    color: #b42318;
+    border-color: #f0c7c3;
+}
+
+.VacationCard .CardActions .DeleteButton:hover:not(:disabled) {
+    background: #fff1f0;
+    border-color: #b42318;
+}
+
+.VacationCard .CardActions .LikedButton {
+    background: #e6f5f3;
+    color: #087f8c;
+    border-color: #a8d8d3;
+}
+
+.VacationCard .CardActions .LikedButton:hover:not(:disabled) {
+    background: #d3eeea;
+    border-color: #087f8c;
+}
+
+.VacationCard .CardActions button:disabled {
+    opacity: 0.55;
+    cursor: wait;
+}
+
+.VacationCard .CardActions button:focus-visible,
+.VacationCard .CardActions a:focus-visible {
+    outline: 3px solid #54bac6;
+    outline-offset: 3px;
+}
+
+.VacationCard .CardLikes {
+    margin: 0;
+    color: #607582;
+    font-size: 0.85rem;
+    white-space: nowrap;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .VacationCard,
+    .VacationCard .CardActions button,
+    .VacationCard .CardActions a {
+        transition: none;
+    }
+
+    .VacationCard:hover {
+        transform: none;
+    }
 }

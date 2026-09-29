@@ -135,11 +135,7 @@ class VacationService {
             );
         }
 
-        const sql = `
-        update vacations
-        set destination = ?, description = ?, startDate = ?, endDate = ?, price = ?, imageFileName = ?
-        where vacationId = ?
-    `;
+        const sql = ` update vacations set destination = ?, description = ?, startDate = ?, endDate = ?, price = ?, imageFileName = ? where vacationId = ? `;
         const values = [vacation.destination, vacation.description, vacation.startDate, vacation.endDate, vacation.price, imageFileName, vacationId];
 
         try {
@@ -185,6 +181,28 @@ class VacationService {
         if (!vacation) return null;
         return vacation.imageFileName ?? null;
     }
+    // Returns every vacation's destination and total likes, including zero.
+public async getVacationsReport(): Promise<{
+    vacationId: number;
+    destination: string;
+    likesCount: number;
+}[]> {
+    const sql = `
+        SELECT v.vacationId, v.destination, COUNT(l.userId) AS likesCount
+        FROM vacations AS v
+        LEFT JOIN likes AS l ON v.vacationId = l.vacationId
+        GROUP BY v.vacationId, v.destination
+        ORDER BY v.destination ASC, v.vacationId ASC
+    `;
+
+    const rows = await dal.execute(sql) as RowDataPacket[];
+
+    return rows.map(row => ({
+        vacationId: Number(row.vacationId),
+        destination: row.destination,
+        likesCount: Number(row.likesCount)
+    }));
+}
 }
 
 

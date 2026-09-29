@@ -6,6 +6,7 @@ import { UserModel } from "../models/user-model";
 import { store } from "../redux/store";
 import { userSlice } from "../redux/user-slice";
 import { vacationSlice } from "../redux/vacation-slice";
+import { RegistrationModel } from "../models/registration-model";
 
 class UserService {
     // Sends credentials and saves the JWT returned by the backend.
@@ -24,6 +25,16 @@ class UserService {
         store.dispatch(userSlice.actions.logoutUser());
         store.dispatch(vacationSlice.actions.initVacations([]));
     }
+// Registers the user and initializes their authenticated session.
+public async register(user: RegistrationModel): Promise<void> {
+    const response = await axios.post<string>(appConfig.registerUrl, user);
+    const token = response.data;
+    const payload = jwtDecode<{ user: UserModel }>(token);
+
+    localStorage.setItem("token", token);
+    store.dispatch(userSlice.actions.initUser(payload.user));
+}
+
     // Restores the user to Redux from a saved, unexpired token.
     public restoreSession(): void {
         const token = localStorage.getItem("token");

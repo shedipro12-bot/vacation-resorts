@@ -3,8 +3,8 @@ class AppConfig {
     public readonly vacationsUrl = `${this.BaseServerUrl}/vacations`;
     public readonly loginUrl = `${this.BaseServerUrl}/auth/login`;
     public readonly registerUrl = `${this.BaseServerUrl}/auth/register`;
+  
 
-    
     public readonly recaptchaSiteKey = import.meta.env.VITE_RECAPTCHA_SITE_KEY;
     public readonly openaiUrl = "https://api.openai.com/v1/responses";
 }
