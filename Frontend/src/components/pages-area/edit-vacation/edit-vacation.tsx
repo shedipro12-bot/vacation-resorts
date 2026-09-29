@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useAdmin } from "../../../hooks/use-admin";
-import type { VacationModel } from "../../../models/vacation-model";
 import { vacationService } from "../../../services/vacation-service";
 import { notify } from "../../../utils/notify";
 import { VacationForm } from "../../vacation-area/vacation-form/vacation-form";
 import "./edit-vacation.css";
+import { VacationFormModel } from "../../../models/vacation-form-model";
+import { VacationModel } from "../../../models/vacation-model";
 
 // Reads the requested vacation ID and mounts its editor.
 export function EditVacation() {
@@ -50,9 +51,10 @@ function VacationEditor({ vacationId }: { vacationId: number }) {
         return () => { cancelled = true; };
     }, [vacationId]);
 
-    // Saves changes while preserving the old image if no replacement is sent.
-    async function handleSave(data: FormData): Promise<void> {
-        await vacationService.updateVacation(vacationId, data);
+    // Saves the vacation changes and returns to the list.
+    // Saves the vacation changes and returns to the list.
+    async function handleSave(values: VacationFormModel): Promise<void> {
+        await vacationService.updateVacation(vacationId, values);
         navigate("/vacations");
     }
 

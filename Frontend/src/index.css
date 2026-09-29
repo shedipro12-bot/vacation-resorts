@@ -1,4 +1,38 @@
-html , body , #root {
+html,
+body,
+#root {
     background-image: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+    margin: 0;
+    height: 100%;
+    text-align: center;
 
+    /* Centers pages containing a form. */
+    .FormPage {
+        display: flex;
+        justify-content: center;
+        padding: 32px 16px;
+    }
+
+    /* Shared form container. */
+    .FormPanel {
+        box-sizing: border-box;
+        width: 100%;
+        max-width: 480px;
+        padding: 28px;
+    }
+
+    /* Shared spacing between form fields and actions. */
+    .AppForm {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+        margin-top: 24px;
+    }
+
+    @media (max-width: 600px) {
+        .FormPanel {
+            padding: 20px;
+        }
+
+    }
 }

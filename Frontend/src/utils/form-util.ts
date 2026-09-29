@@ -1,15 +1,21 @@
-import { VacationModel } from "../models/vacation-model";
+import { VacationFormModel } from "../models/vacation-form-model";
+
 class FormUtil {
+    // Converts vacation form values and an optional image into multipart data.
+    public toFormData(vacation: VacationFormModel): FormData {
+        const formData = new FormData();
+        formData.append("destination", vacation.destination);
+        formData.append("description", vacation.description);
+        formData.append("startDate", vacation.startDate);
+        formData.append("endDate", vacation.endDate);
+        formData.append("price", vacation.price.toString());
 
-    // Convert vacation into FormData, so we could send also the image:
-    public toFormData(vacation: VacationModel): FormData {
-        const vacationFormData = new FormData();
-        vacationFormData.append("name", vacation.destination);
-        vacationFormData.append("price", vacation.price.toString());
-        vacationFormData.append("image",vacation.imageUrl);
-        return vacationFormData;
+        if (vacation.image) {
+            formData.append("image", vacation.image);
+        }
+
+        return formData;
     }
-
 }
 
 export const formUtil = new FormUtil();

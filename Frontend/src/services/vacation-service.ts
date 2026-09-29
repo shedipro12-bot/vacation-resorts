@@ -1,6 +1,8 @@
 import axios from "axios";
 import { VacationModel } from "../models/vacation-model";
 import { appConfig } from "../utils/app-config";
+import { VacationFormModel } from "../models/vacation-form-model";
+import { formUtil } from "../utils/form-util";
 
 class VacationService {
     // Get All Vacations
@@ -13,18 +15,21 @@ class VacationService {
         const response = await axios.get<VacationModel>(`${appConfig.vacationsUrl}/${vacationId}`);
         return response.data;
     }
-    // Create a vacation with an uploaded image.
-    public async addVacation(data: FormData): Promise<VacationModel> {
-        const response = await axios.post<VacationModel>(appConfig.vacationsUrl, data);
+
+
+    // Converts form values into multipart data and creates a vacation.
+    public async addVacation(vacation: VacationFormModel): Promise<VacationModel> {
+        const response = await axios.post<VacationModel>(appConfig.vacationsUrl, formUtil.toFormData(vacation));
         return response.data;
     }
-    // Updates a vacation, optionally replacing its image.
-    public async updateVacation(vacationId: number, data: FormData): Promise<VacationModel> {
-        const response = await axios.put<VacationModel>(`${appConfig.vacationsUrl}/${vacationId}`, data);
-        return response.data
+    // Converts form values into multipart data and updates a vacation.
+    public async updateVacation(vacationId: number, vacation: VacationFormModel): Promise<VacationModel> {
+        const response = await axios.put<VacationModel>(`${appConfig.vacationsUrl}/${vacationId}`, formUtil.toFormData(vacation));
+        return response.data;
     }
+    // Deletes the vacation from the backend.
     public async deleteVacation(vacationId: number): Promise<void> {
-        const response = await axios.delete<VacationModel[]>(`${appConfig.vacationsUrl}/${vacationId}`)
+        await axios.delete(`${appConfig.vacationsUrl}/${vacationId}`);
     }
 }
 

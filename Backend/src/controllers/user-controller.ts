@@ -8,8 +8,8 @@ class UserController {
     public router: Router = Router();
 
     public constructor() {
-        this.router.post("/api/auth/register", this.register)
-        this.router.post("/api/auth/login", this.login)
+        this.router.post("/api/auth/sign-up", this.register);
+        this.router.post("/api/auth/sign-in", this.login);
     }
 
     public async register(request: Request, response: Response): Promise<void> {

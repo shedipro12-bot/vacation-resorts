@@ -1,10 +1,12 @@
 import { useState, type FormEvent } from "react";
 import type { VacationModel } from "../../../models/vacation-model";
 import { notify } from "../../../utils/notify";
+import { VacationFormModel } from "../../../models/vacation-form-model";
+
 
 type VacationFormProps = {
     vacation?: VacationModel;
-    onSave: (data: FormData) => Promise<void>;
+    onSave: (data: VacationFormModel) => Promise<void>;
 };
 
 // Formats API dates for date inputs using the browser's local calendar date.
@@ -25,28 +27,34 @@ export function VacationForm({ vacation, onSave }: VacationFormProps) {
     const [startDate, setStartDate] = useState(vacation ? toInputDate(vacation.startDate) : "");
     const [isSaving, setIsSaving] = useState(false);
 
-    // Sends the form fields and optional file to the page's save function.
-    async function handleSubmit(event: FormEvent<HTMLFormElement>): Promise<void> {
-        event.preventDefault();
-        if (isSaving) return;
+   // Collects form values and passes them to the page's save function.
+async function handleSubmit(event: FormEvent<HTMLFormElement>): Promise<void> {
+    event.preventDefault();
+    if (isSaving) return;
 
-        const data = new FormData(event.currentTarget);
-        const image = data.get("image");
+    const fields = new FormData(event.currentTarget);
+    const image = fields.get("image");
 
-        // Do not send an empty file when keeping the existing image.
-        if (image instanceof File && image.size === 0) data.delete("image");
+    const values: VacationFormModel = {
+        destination: String(fields.get("destination") ?? ""),
+        description: String(fields.get("description") ?? ""),
+        startDate: String(fields.get("startDate") ?? ""),
+        endDate: String(fields.get("endDate") ?? ""),
+        price: Number(fields.get("price")),
+        image: image instanceof File && image.size > 0 ? image : undefined
+    };
 
-        setIsSaving(true);
-        try {
-            await onSave(data);
-        }
-        catch (error) {
-            notify.error(error);
-        }
-        finally {
-            setIsSaving(false);
-        }
+    setIsSaving(true);
+    try {
+        await onSave(values);
     }
+    catch (error) {
+        notify.error(error);
+    }
+    finally {
+        setIsSaving(false);
+    }
+}
 
     return (
         <form className="VacationForm" onSubmit={handleSubmit}>

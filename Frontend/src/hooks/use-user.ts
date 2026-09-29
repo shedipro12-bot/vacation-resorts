@@ -11,9 +11,8 @@ export function useUser(): boolean {
     const isLoggedIn = user !== null;
 
     useEffect(() => {
-        if (!isLoggedIn) {
-            navigate("/login", { replace: true });
-        }
+       if (!isLoggedIn) {
+      navigate("/login", { replace: true });}
     }, [isLoggedIn, navigate]);
 
     return isLoggedIn;

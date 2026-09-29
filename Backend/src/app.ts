@@ -9,6 +9,7 @@ import { appConfig } from "./utils/app-config";
 import { loggerMiddleware } from "./middleware/logger-middleware";
 import { vacationController } from "./controllers/vacation-controller";
 import { userController } from "./controllers/user-controller";
+import { aiController } from "./controllers/ai-controller";
 
 class App {
 
@@ -34,6 +35,7 @@ class App {
         // Register controllers:
         server.use(vacationController.router);
        server.use(userController.router);
+       server.use(aiController.router);
         // Register "after" middleware:
         server.use(errorMiddleware.routeNotFound);
         server.use(errorMiddleware.catchAll);

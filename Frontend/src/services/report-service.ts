@@ -1,5 +1,4 @@
 import axios from "axios";
-import { RegistrationModel } from "../models/registration-model";
 import { VacationReportModel } from "../models/vacation-report-model";
 import { appConfig } from "../utils/app-config";
 

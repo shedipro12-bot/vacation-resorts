@@ -1,12 +1,11 @@
 import { useState } from "react";
 import type { FormEvent } from "react";
-import "./login.css";
 import { CredentialsModel } from "../../../models/credential-model";
 import { userService } from "../../../services/user-service";
 import { useNavigate } from "react-router-dom";
 import { notify } from "../../../utils/notify";
 // Displays the login form and keeps track of its input values.
-export function Login() {
+export function SignIn() {
     const navigate = useNavigate();
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");

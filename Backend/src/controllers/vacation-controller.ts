@@ -1,5 +1,4 @@
 import express, { Request, Response, Router } from "express";
-import path from "path";
 import { vacationService } from "../services/vacation-service";
 import { securityMiddleware } from "../middleware/security-middleware";
 import { likeService } from "../services/like-service";
@@ -12,18 +11,24 @@ class VacationController {
     public router: Router = express.Router();
 
     public constructor() {
-        // Public image files:
+        // Serves public vacation images.
         this.router.get("/api/vacations/images/:imageName", this.getImage);
-        // Protected vacation information:
+
+        // Registers the named report route before the dynamic vacation ID route.
+        this.router.get("/api/vacations/reports", securityMiddleware.verifyLoggedIn, securityMiddleware.verifyAdmin, this.getVacationsReport);
+
+        // Retrieves vacations for authenticated users.
         this.router.get("/api/vacations", securityMiddleware.verifyLoggedIn, this.getAllVacations);
         this.router.get("/api/vacations/:vacationId", securityMiddleware.verifyLoggedIn, this.getOneVacation);
+
+        // Allows normal users to like and unlike vacations.
         this.router.post("/api/vacations/:vacationId/likes", securityMiddleware.verifyLoggedIn, securityMiddleware.verifyUser, this.addVacationLike);
         this.router.delete("/api/vacations/:vacationId/likes", securityMiddleware.verifyLoggedIn, securityMiddleware.verifyUser, this.removeVacationLike);
-        // Protected vacation information by role:
+
+        // Allows admins to create, update, and delete vacations.
         this.router.post("/api/vacations", securityMiddleware.verifyLoggedIn, securityMiddleware.verifyAdmin, this.addVacation);
         this.router.put("/api/vacations/:vacationId", securityMiddleware.verifyLoggedIn, securityMiddleware.verifyAdmin, this.updateVacation);
         this.router.delete("/api/vacations/:vacationId", securityMiddleware.verifyLoggedIn, securityMiddleware.verifyAdmin, this.removeVacation);
-        this.router.get("/api/vacations/reports", securityMiddleware.verifyLoggedIn, securityMiddleware.verifyAdmin, this.getVacationsReport);
     }
     // Get all vacations:
     private async getAllVacations(request: Request, response: Response): Promise<void> {
@@ -32,9 +37,9 @@ class VacationController {
         response.json(vacations);
     }
     //  Get one vacation:
+    // Retrieves one vacation by its ID.
     private async getOneVacation(request: Request, response: Response): Promise<void> {
         const vacationId = +request.params.vacationId;
-        const userId = (request as any).user.userId;
         const vacation = await vacationService.getOneVacation(vacationId);
         response.json(vacation);
     }
@@ -93,6 +98,7 @@ class VacationController {
         const report = await vacationService.getVacationsReport();
         response.json(report);
     }
+
 
 
 }

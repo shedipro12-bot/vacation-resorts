@@ -5,7 +5,8 @@ import { dal } from "../utils/dal";
 import { StatusCode } from "../models/enums";
 import { ClientError } from "../models/client-error";
 import { saver } from "smart-saver";
-
+import axios from "axios";
+import { VacationReportModel } from "../models/vacation-report-model";
 class VacationService {
     // Get all vacations:
     public async getAllVacations(userId: number): Promise<VacationModel[]> {
@@ -181,29 +182,25 @@ class VacationService {
         if (!vacation) return null;
         return vacation.imageFileName ?? null;
     }
-    // Returns every vacation's destination and total likes, including zero.
-public async getVacationsReport(): Promise<{
-    vacationId: number;
-    destination: string;
-    likesCount: number;
-}[]> {
-    const sql = `
-        SELECT v.vacationId, v.destination, COUNT(l.userId) AS likesCount
-        FROM vacations AS v
-        LEFT JOIN likes AS l ON v.vacationId = l.vacationId
-        GROUP BY v.vacationId, v.destination
-        ORDER BY v.destination ASC, v.vacationId ASC
-    `;
+    // Retrieves each vacation and its total likes, including vacations with zero likes.
+    public async getVacationsReport(): Promise<VacationReportModel[]> {
+        const sql = `
+            SELECT v.vacationId, v.destination, COUNT(l.userId) AS likesCount
+            FROM vacations AS v
+            LEFT JOIN likes AS l ON v.vacationId = l.vacationId
+            GROUP BY v.vacationId, v.destination
+            ORDER BY v.destination ASC, v.vacationId ASC
+        `;
 
-    const rows = await dal.execute(sql) as RowDataPacket[];
+        const rows = await dal.execute(sql) as RowDataPacket[];
 
-    return rows.map(row => ({
-        vacationId: Number(row.vacationId),
-        destination: row.destination,
-        likesCount: Number(row.likesCount)
-    }));
+        return rows.map(row => ({
+            vacationId: Number(row.vacationId),
+            destination: row.destination,
+            likesCount: Number(row.likesCount)
+        }));
+    }
 }
-}
-
 
 export const vacationService = new VacationService();
+

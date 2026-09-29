@@ -97,7 +97,7 @@ export function VacationCard(props: VacationCardProps) {
                         )}
                     </div>
 
-                    <p className="CardLikes">{vacation.likesCount ?? 0} likes</p>
+                    <p className="CardLikes">{vacation.likesCount ?? 0} likes ❤️</p>
                 </div>
             </div>
         </article>

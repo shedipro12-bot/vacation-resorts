@@ -8,7 +8,7 @@ class AppConfig {
     public readonly environment = process.env.ENVIRONMENT!;
     public readonly isDevelopment = this.environment === "development";
     public readonly isProduction = this.environment === "production";
-
+    public readonly openaiApiKey = process.env.OPENAI_API_KEY!;
     public readonly port = 4000;
     public readonly vacationImagesBaseUrl = process.env.VACATION_IMAGES_BASE_URL!;
     public readonly mysqlHost = process.env.MYSQL_HOST!;
