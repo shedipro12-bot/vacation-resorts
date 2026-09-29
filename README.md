@@ -34,7 +34,6 @@ Frontend/
   src/services/               Requests to the backend
   src/redux/                  Shared user and vacation state
   src/styles/                 Shared design tokens and CSS modules
-scripts/                      Optional source for regenerating the 404 video
 ```
 
 ## Requirements
@@ -182,11 +181,7 @@ MySQL `CURDATE()` uses the database session's calendar date. Configure your data
 
 Unknown frontend routes display a useful explanation, links to vacations/sign-in, and `Frontend/public/media/lost-at-sea.mp4`. The original vector animation is four seconds, muted, and does not loop. Native controls allow pause/replay; reduced-motion preferences disable automatic playback. A PNG poster remains available before playback. No remote video host or tracking service is used.
 
-The video is included as a ready-to-use file. Regeneration is optional and requires Python, CairoSVG and ffmpeg:
-
-```bash
-python scripts/generate-404-video.py
-```
+The video is included as a ready-to-use file and is displayed only on the 404 page.
 
 ## Verification
 
