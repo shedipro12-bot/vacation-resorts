@@ -1,0 +1,20 @@
+/* Single entry point also covers components that do not import their stylesheet. */
+@import "./styles/tokens.css";
+@import "./styles/base.css";
+@import "./components/layout-area/layout/layout.css";
+@import "./components/layout-area/header/header.css";
+@import "./components/layout-area/menu/menu.css";
+@import "./components/user-area/auth_menu/auth_menu.css";
+@import "./components/layout-area/copyrights/copyrights.css";
+@import "./components/pages-area/vacations/vacations.css";
+@import "./components/vacation-area/vacation-filters/vacation-filters.css";
+@import "./components/vacation-area/vacation-card/vacation-card.css";
+@import "./components/vacation-area/vacation-pagination/vacation-pagination.css";
+@import "./styles/forms.css";
+@import "./styles/mui-bridge.css";
+@import "./styles/search-and-modal.css";
+@import "./components/pages-area/ai/ai.css";
+@import "./components/pages-area/admin-report/admin-report.css";
+@import "./components/pages-area/mcp/mcp.css";
+@import "./components/pages-area/page404/page404.css";
+@import "./components/shared-area/spinner/spinner.css";

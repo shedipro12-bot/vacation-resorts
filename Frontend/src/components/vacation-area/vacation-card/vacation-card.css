@@ -1,0 +1,33 @@
+.VacationCard { position: relative; isolation: isolate; display: flex; flex-direction: column; min-width: 0; overflow: hidden; border: 1px solid var(--color-border); border-radius: var(--radius-card); background: var(--color-surface); box-shadow: var(--elevation-1); transition: transform var(--transition-standard), box-shadow var(--transition-standard), border-color var(--transition-standard); }
+.VacationCard > img, .CardMedia { width: 100%; aspect-ratio: 16 / 9; flex-shrink: 0; background: var(--color-sand); }
+.VacationCard > img, .CardMedia img { display: block; width: 100%; height: auto; aspect-ratio: 16 / 9; object-fit: cover; transition: transform var(--transition-image); }
+.CardMedia { overflow: hidden; position: relative; }
+.CardBody { position: relative; z-index: 1; flex: 1; display: flex; flex-direction: column; padding: clamp(20px, 2vw, 26px); background: var(--color-surface); }
+.CardBody h2 { margin-bottom: 12px; font-size: 1.3rem; line-height: 1.3; overflow-wrap: anywhere; }
+.CardDescription { margin-bottom: 22px; color: var(--color-text-muted); font-size: .88rem; line-height: 1.75; overflow-wrap: anywhere; }
+.CardLocation { color: var(--color-secondary); font-size: .85rem; }
+.CardDates { display: flex; align-items: center; gap: 8px; margin-top: auto; margin-bottom: 10px; color: var(--color-text-muted); font-size: .77rem; font-variant-numeric: tabular-nums; }
+.CardDates::before { content: ""; width: 14px; height: 14px; flex-shrink: 0; border: 1.5px solid currentColor; border-radius: 3px; background: linear-gradient(currentColor,currentColor) 0 3px / 100% 1px no-repeat; }
+.CardPrice { margin: 0 0 20px; color: var(--color-primary); font-size: 1.8rem; font-weight: 750; line-height: 1.15; letter-spacing: -.035em; font-variant-numeric: tabular-nums; }
+.CardFooter { border-top: 1px solid var(--color-border); padding-top: 16px; }
+.CardActions { display: flex; flex-wrap: wrap; gap: 10px; }
+.CardActions > a, .CardActions > button { flex: 1; display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: 10px 16px; border: 1px solid var(--color-border); border-radius: var(--radius-input); text-decoration: none; background: var(--color-surface-soft); color: var(--color-primary); font-size: .85rem; font-weight: 650; }
+.CardActions > a:hover { border-color: var(--color-primary); background: #e8f0f1; }
+.CardActions > button[aria-pressed] { border-color: #d8b8aa; background: var(--color-sand-light); color: var(--color-accent); }
+.CardActions > button[aria-pressed]:hover:not(:disabled) { border-color: var(--color-accent); background: #fae7df; color: var(--color-accent-hover); }
+.CardActions > .LikedButton, .CardActions > button[aria-pressed="true"] { background: var(--color-accent); color: white; border-color: var(--color-accent); animation: like-pop 240ms ease-out; }
+.CardActions > .LikedButton:hover:not(:disabled) { background: var(--color-accent-hover); color: white; }
+.CardActions > .DeleteButton { border-color: #e7b7bf; background: var(--color-destructive-soft); color: var(--color-destructive); }
+.CardActions > .DeleteButton:hover:not(:disabled) { background: var(--color-destructive); color: white; }
+/* Static-positioned descendants let the badge anchor to the article. */
+.VacationCard .CardBody { position: static; }
+.VacationCard .CardLikes { position: absolute; z-index: 3; top: 14px; right: 14px; margin: 0; padding: 7px 11px; border: 1px solid rgb(255 255 255 / 80%); border-radius: var(--radius-pill); background: rgb(255 255 255 / 95%); color: var(--color-primary); font-size: .73rem; font-weight: 650; box-shadow: 0 2px 9px rgb(0 0 0 / 9%); }
+/* Clip the direct image to its original box while zooming, without adding JSX. */
+.VacationCard > img { clip-path: inset(0); }
+@media (hover: hover) and (pointer: fine) {
+    .VacationCard:hover { transform: translateY(-5px); box-shadow: var(--elevation-2); border-color: #b7cccf; }
+    .VacationCard:hover > img { transform: scale(1.04); clip-path: inset(1.9231%); }
+    .VacationCard:hover .CardMedia img { transform: scale(1.04); }
+}
+.VacationCard:focus-within { border-color: var(--color-secondary); box-shadow: var(--elevation-2); }
+@keyframes like-pop { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.045); } }

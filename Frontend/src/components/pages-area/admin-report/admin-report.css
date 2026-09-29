@@ -1,0 +1,6 @@
+.Layout main > .MuiContainer-root { padding: 0; min-width: 0; }
+.Layout main > .MuiContainer-root .MuiPaper-root { box-shadow: var(--elevation-1); }
+.Layout main > .MuiContainer-root .MuiStack-root { min-width: 0; }
+.Layout main > .MuiContainer-root .MuiChartsAxis-tickLabel { fill: var(--color-text-muted); }
+.Layout main > .MuiContainer-root .MuiChartsGrid-line { stroke: var(--color-border); }
+@media (max-width: 600px) { .Layout main > .MuiContainer-root .MuiButton-root { padding-inline: 12px; font-size: .8rem; } }

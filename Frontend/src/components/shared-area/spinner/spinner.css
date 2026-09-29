@@ -1,0 +1,2 @@
+.Spinner { display: grid; place-items: center; min-height: 160px; }
+.Spinner img { width: 64px; height: 64px; object-fit: contain; }

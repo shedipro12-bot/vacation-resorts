@@ -1,0 +1,4 @@
+.VacationPagination { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 18px; margin-top: 38px; }
+.VacationPagination button { background: white; color: var(--color-primary); border-color: var(--color-border); font-size: .85rem; min-width: 96px; }
+.VacationPagination span { color: var(--color-text-muted); font-size: .83rem; font-variant-numeric: tabular-nums; }
+@media (max-width: 380px) { .VacationPagination { gap: 8px; } .VacationPagination button { min-width: 80px; padding-inline: 10px; } }

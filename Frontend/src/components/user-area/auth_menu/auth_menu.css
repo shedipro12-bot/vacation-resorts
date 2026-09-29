@@ -1,0 +1,8 @@
+.UserArea { display: flex; align-items: center; justify-content: flex-end; flex-wrap: wrap; gap: 8px; margin-inline-start: auto; min-width: 0; }
+.UserArea > span { display: inline-flex; align-items: center; gap: 8px; max-width: 220px; padding: 7px 10px; border-radius: var(--radius-pill); background: var(--color-sand-light); color: var(--color-primary); font-size: .78rem; font-weight: 600; overflow-wrap: anywhere; }
+.UserArea > span::before { content: ""; flex: 0 0 22px; width: 22px; height: 22px; border-radius: 50%; background: radial-gradient(circle at 50% 35%, var(--color-secondary) 0 20%, transparent 23%), radial-gradient(ellipse at 50% 100%, var(--color-secondary) 0 38%, transparent 41%), #dce9e6; }
+.UserArea > button { padding: 9px 12px; border-color: var(--color-border); background: white; color: var(--color-text-muted); font-size: .8rem; }
+.UserArea > a[href$="sign-up"] { background: var(--color-accent); color: white; padding-inline: 18px; }
+.UserArea > a[href$="sign-up"]:hover { background: var(--color-accent-hover); }
+@media (max-width: 1050px) { .UserArea { margin-inline-start: 12px; } }
+@media (max-width: 600px) { .UserArea { flex-basis: 100%; justify-content: center; margin: 6px 0 0; padding-top: 10px; border-top: 1px solid var(--color-border); } }

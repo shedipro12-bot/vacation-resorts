@@ -1,0 +1,5 @@
+.VacationFilters { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin-bottom: 32px; padding: 10px; width: fit-content; max-width: 100%; border: 1px solid var(--color-border); border-radius: var(--radius-pill); background: var(--color-surface); box-shadow: var(--elevation-1); }
+.VacationFilters button { min-height: 44px; padding: 11px 22px; border-radius: var(--radius-pill); color: var(--color-text-muted); background: transparent; font-size: .87rem; }
+.VacationFilters button:hover:not(:disabled) { color: var(--color-primary); background: var(--color-surface-soft); }
+.VacationFilters button[aria-pressed="true"] { color: white; background: var(--color-primary); box-shadow: 0 3px 8px rgb(18 62 80 / 15%); }
+@media (max-width: 600px) { .VacationFilters { width: 100%; border-radius: 18px; gap: 6px; } .VacationFilters button { flex: 1 1 calc(50% - 6px); padding-inline: 10px; } }

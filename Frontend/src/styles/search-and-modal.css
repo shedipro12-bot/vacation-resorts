@@ -1,0 +1,15 @@
+/* Opt-in patterns: the current app does not yet render a search form or dialog. */
+.ResortSearch { display: grid; grid-template-columns: 1.4fr 1fr 1fr 1.2fr auto; align-items: end; gap: 16px; padding: clamp(18px, 3vw, 28px); margin-bottom: 32px; border: 1px solid var(--color-border); border-radius: var(--radius-panel); background: white; box-shadow: var(--elevation-2); }
+.Field { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.Field input[type="range"] { width: 100%; min-height: 44px; margin: 0; accent-color: var(--color-secondary); cursor: pointer; }
+.Field output { color: var(--color-text-muted); font-size: .8rem; }
+.ResortSearch .Button { min-height: 48px; }
+.ResortModal { width: min(680px, calc(100% - 32px)); max-height: calc(100vh - 48px); max-height: calc(100dvh - 48px); padding: clamp(22px, 4vw, 36px); overflow-y: auto; border: 1px solid var(--color-border); border-radius: var(--radius-panel); background: white; color: var(--color-text-main); box-shadow: var(--elevation-2); }
+.ResortModal::backdrop { background: rgb(9 32 43 / 55%); backdrop-filter: blur(5px); }
+.ResortModal[open] { animation: modal-enter 180ms ease-out; }
+.ModalHeader { display: flex; align-items: start; justify-content: space-between; gap: 16px; }
+.ModalClose { flex: 0 0 44px; padding: 8px; background: var(--color-surface-soft); color: var(--color-primary); font-size: 1.4rem; }
+.ModalActions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 12px; margin-top: 24px; }
+@keyframes modal-enter { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+@media (max-width: 1100px) { .ResortSearch { grid-template-columns: repeat(2, minmax(0,1fr)); } .ResortSearch > :first-child { grid-column: 1 / -1; } }
+@media (max-width: 600px) { .ResortSearch { grid-template-columns: minmax(0,1fr); gap: 18px; } .ModalActions > * { flex: 1; } }

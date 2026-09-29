@@ -1,0 +1,22 @@
+/* Scoped specificity beats existing MUI theme/sx rules without changing JS. */
+.Layout .MuiTypography-root, .Layout .MuiButton-root, .Layout .MuiInputBase-root, .Layout .MuiInputLabel-root { font-family: var(--font-sans); }
+.Layout .MuiTypography-h4, .Layout .MuiTypography-h5 { color: var(--color-primary); letter-spacing: -.035em; }
+.Layout .MuiPaper-root { border-color: var(--color-border); border-radius: var(--radius-card); background-color: var(--color-surface); }
+.Layout .FormPanel.MuiPaper-root { padding: clamp(24px, 4vw, 44px); border-radius: var(--radius-panel); box-shadow: var(--elevation-1); border-top: 4px solid var(--color-secondary); }
+.Layout .MuiButton-root { min-height: 44px; border-radius: var(--radius-input); font-weight: 650; text-transform: none; }
+.Layout .MuiButton-contained { background-color: var(--color-accent); color: white; }
+.Layout .MuiButton-contained:hover { background-color: var(--color-accent-hover); }
+.Layout .MuiButton-outlined { border-color: var(--color-input-border); color: var(--color-primary); }
+.Layout .MuiButton-outlined:hover { background-color: var(--color-surface-soft); border-color: var(--color-primary); }
+.Layout .MuiButton-root.Mui-disabled { color: #56656a; background: #e8ecee; opacity: 1; border-color: var(--color-border); }
+.Layout .MuiOutlinedInput-root { border-radius: var(--radius-input); background: white; }
+.Layout .MuiOutlinedInput-notchedOutline { border-color: var(--color-input-border); }
+.Layout .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline { border-color: var(--color-focus); border-width: 2px; }
+.Layout .MuiOutlinedInput-root.Mui-focused { box-shadow: 0 0 0 3px rgb(23 108 112 / 12%); }
+.Layout .MuiOutlinedInput-root.Mui-error .MuiOutlinedInput-notchedOutline { border-color: var(--color-destructive); }
+.Layout .MuiInputLabel-root.Mui-focused { color: var(--color-secondary); }
+.Layout .MuiInputLabel-root.Mui-error, .Layout .MuiFormHelperText-root.Mui-error { color: var(--color-destructive); }
+.Layout .MuiCircularProgress-root { color: var(--color-secondary); }
+.Layout .MuiChip-root { border-radius: var(--radius-pill); }
+.Layout .MuiAlert-root { border-radius: var(--radius-input); }
+.Layout .MuiButton-root:focus-visible { outline: 3px solid var(--color-focus); outline-offset: 4px; }

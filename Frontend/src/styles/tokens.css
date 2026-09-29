@@ -1,0 +1,41 @@
+/* Ocean & Sand — edit these tokens to theme every component. */
+:root {
+    color-scheme: light;
+    --color-primary: #123e50;
+    --color-primary-hover: #0b2d3b;
+    --color-secondary: #176c70;
+    --color-accent: #b94532;
+    --color-accent-hover: #973524;
+    --color-sand: #f2e8d8;
+    --color-sand-light: #fbf7f0;
+    --color-surface: #fff;
+    --color-surface-soft: #f5f7f7;
+    --color-background: #f7f8f6;
+    --color-text-main: #18343e;
+    --color-text-muted: #546b73;
+    --color-border: #d9e3e4;
+    --color-input-border: #82979e;
+    --color-destructive: #b42332;
+    --color-destructive-soft: #fff0f1;
+    --color-success: #28684a;
+    --color-focus: #176c70;
+    --elevation-1: 0 4px 18px rgb(18 62 80 / 6%);
+    --elevation-2: 0 16px 40px rgb(18 62 80 / 13%);
+    --radius-input: 10px;
+    --radius-card: 20px;
+    --radius-panel: 24px;
+    --radius-pill: 999px;
+    --transition-standard: 180ms ease-in-out;
+    --transition-image: 450ms cubic-bezier(.2,.65,.3,1);
+    --font-sans: Inter, "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+    --content-width: 1240px;
+    --page-gutter: clamp(16px, 3.5vw, 48px);
+    --space-1: 4px;
+    --space-2: 8px;
+    --space-3: 12px;
+    --space-4: 16px;
+    --space-5: 24px;
+    --space-6: 32px;
+    --space-7: 48px;
+    --space-8: 64px;
+}
