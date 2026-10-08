@@ -5,7 +5,9 @@
     "scripts": {
         "start": "nodemon --exec tsx src/app.ts --quiet",
         "test": "node --import tsx --test tests/*.test.ts",
-        "typecheck": "tsc --noEmit"
+        "typecheck": "tsc --noEmit",
+        "build": "tsc -p tsconfig.build.json",
+        "start:production": "node dist/app.js"
     },
     "author": "",
     "license": "ISC",

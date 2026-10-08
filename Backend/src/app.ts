@@ -12,6 +12,7 @@ import { userController } from "./controllers/user-controller";
 import { aiController } from "./controllers/ai-controller";
 
 import { mcpController } from "./controllers/mcp-controller";
+import { dal } from "./utils/dal";
 
 class App {
 
@@ -33,6 +34,17 @@ class App {
         // Register "before" middleware: 
         server.use(loggerMiddleware.logToConsole);
         server.use(securityMiddleware.preventXss);
+
+        // Reports readiness only when the database is reachable.
+        server.get("/api/health", async (_request, response) => {
+            try {
+                await dal.execute("SELECT 1");
+                response.json({ status: "ok" });
+            }
+            catch {
+                response.status(503).json({ status: "unavailable" });
+            }
+        });
 
         // Register controllers:
         server.use(vacationController.router);

@@ -19,6 +19,8 @@ A full-stack vacation discovery application built by **Shadi Boatman** with Reac
 ## Project structure
 
 ```text
+compose.yaml                  MySQL, backend and frontend Docker services
+.env.example                  Root Docker configuration variable names
 Database/                     MySQL schema and development seed export
 Backend/
   src/ai/                     MCP tools, registration, server and client
@@ -81,7 +83,7 @@ Copy `Backend/.env.example` to `Backend/.env` and fill in the values:
 | `OPENAI_API_KEY` | Your private OpenAI API key |
 | `RECAPTCHA_SECRET_KEY` | Template setting; the current signup flow does not invoke CAPTCHA |
 
-The current backend uses port **4000** and MySQL's default port **3306**. The OpenAI key must be configured before starting because the AI clients initialize at startup. Never put this key in frontend variables.
+For direct local development, the backend uses port **4000** and MySQL's default port **3306**. The OpenAI key must be configured before starting because the AI clients initialize at startup. Never put this key in frontend variables.
 
 ### 4. Configure the frontend
 
@@ -125,6 +127,51 @@ UPDATE users SET roleId = 2 WHERE email = 'your-admin-email@example.com';
 ```
 
 Sign out and sign back in afterward to receive a token with the updated role. Public registration always assigns role 1 (User); role 2 is Admin.
+
+## Docker setup
+
+Install and start Docker Desktop with Linux containers (or Docker Engine with the Compose plugin). From the repository root, copy `.env.example` to `.env` and fill in its values. This root file is used by Compose; Docker does not require the separate Backend/Frontend `.env` files.
+
+PowerShell:
+
+```powershell
+Copy-Item .env.example .env
+```
+
+Set `MYSQL_ROOT_PASSWORD`, `MYSQL_PASSWORD`, `JWT_SECRET`, `HASH_SALT` and `OPENAI_API_KEY`. Use separate strong values for the database passwords/JWT secret. For existing password hashes, keep the original `HASH_SALT`; otherwise register a fresh account after startup. Keep `.env` private. The OpenAI key is passed only to the backend.
+
+Start all three services from the root:
+
+```bash
+docker compose up -d --build
+docker compose ps
+```
+
+Stop any locally running backend on port 4000 before starting Docker, or choose a different `BACKEND_PORT` in the root `.env`.
+
+Open http://localhost:8080. API and images are served through `/api` on that same address, so the browser never needs container service names. Postman can continue using http://localhost:4000/api; change its URLs if you change `BACKEND_PORT`. MySQL is accessed by the backend through the `mysql` service name and is not published to a host port, so your existing local MySQL can stay running.
+
+The first launch imports `Database/vacationDb.sql` into the Docker database. It creates a separate database instance; it does not import changes from your locally running MySQL automatically. MySQL initialization runs only for a new empty `mysql_data` volume. The initial image files are copied into the `vacation_images` volume on its first use. Both volumes survive ordinary container recreation and `docker compose down`.
+
+The backend runs compiled JavaScript as the non-root Node user. Nginx serves the production frontend, falls back to React routing on refresh, and proxies API requests. Health checks wait for the seeded database, then the backend, then the frontend.
+
+Check logs and readiness:
+
+```bash
+docker compose logs --tail=100 mysql backend frontend
+```
+
+Open http://localhost:8080/api/health; it returns 200 when MySQL is reachable and 503 otherwise. Register a test account, sign in, and test cards/images, likes, admin CRUD/report/CSV, AI and MCP. To promote a newly registered local Docker account, open the MySQL client with:
+
+```bash
+docker compose exec mysql mysql -u root -p vacationdb
+```
+
+Enter the root password from your root `.env`, then run `UPDATE users SET roleId = 2 WHERE email = 'your-admin-email@example.com';` and sign in again. Existing imported seed passwords require the salt used when those hashes were generated.
+
+To check persistence, add a test vacation and image, run `docker compose down`, start again with `docker compose up -d --build`, and confirm the row/image still exist. Do not use `docker compose down -v` for a normal restart: `-v` deletes both persistent volumes and their data.
+
+Docker configuration and application builds were checked during implementation. A Docker daemon was not available in that workspace, so the full container startup and live AI calls still need verification on a Docker-enabled computer.
 
 ## Authentication URLs
 
@@ -223,6 +270,6 @@ Also verify duplicate signup gives 409, missing authentication gives 401, admin 
 
 ## Submission status
 
-This source includes the application's implemented features and focused tests. Docker configuration, a complete project-wide test suite, the final database export and clean-machine submission checks are separate remaining checklist items; this README does not claim they are complete.
+This source includes the application's implemented features and focused tests. Docker configuration and the Postman collection are included. Live Docker/AI verification, the final database export and clean-machine submission checks still need completion before submission. A complete project-wide automated test suite is optional and is not an assignment requirement.
 
 Do not commit `.env`, API keys, `node_modules`, or generated build output.

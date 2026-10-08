@@ -1,0 +1,78 @@
+name: vacation-resorts
+
+services:
+  mysql:
+    image: mysql:8.0
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?Set MYSQL_ROOT_PASSWORD in the root .env}
+      MYSQL_DATABASE: vacationdb
+      MYSQL_USER: vacation_app
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:?Set MYSQL_PASSWORD in the root .env}
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./Database/vacationDb.sql:/docker-entrypoint-initdb.d/01-vacations.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "MYSQL_PWD=$$MYSQL_PASSWORD mysql --protocol=TCP --host=127.0.0.1 --user=$$MYSQL_USER --database=$$MYSQL_DATABASE --execute='SELECT vacationId FROM vacations LIMIT 1' >/dev/null 2>&1"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+      start_period: 40s
+    networks:
+      - resort
+
+  backend:
+    build:
+      context: ./Backend
+    restart: unless-stopped
+    init: true
+    environment:
+      ENVIRONMENT: production
+      MYSQL_HOST: mysql
+      MYSQL_USER: vacation_app
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:?Set MYSQL_PASSWORD in the root .env}
+      MYSQL_DATABASE: vacationdb
+      JWT_SECRET: ${JWT_SECRET:?Set JWT_SECRET in the root .env}
+      HASH_SALT: ${HASH_SALT:?Set HASH_SALT in the root .env}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:?Set OPENAI_API_KEY in the root .env}
+      VACATION_IMAGES_BASE_URL: /api/vacations/images/
+    ports:
+      - "127.0.0.1:${BACKEND_PORT:-4000}:4000"
+    volumes:
+      - vacation_images:/app/dist/assets/images
+    depends_on:
+      mysql:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:4000/api/health').then(r => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 15s
+    networks:
+      - resort
+
+  frontend:
+    build:
+      context: ./Frontend
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:${FRONTEND_PORT:-8080}:80"
+    depends_on:
+      backend:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--spider", "http://127.0.0.1/healthz"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - resort
+
+volumes:
+  mysql_data:
+  vacation_images:
+
+networks:
+  resort:
+    driver: bridge
