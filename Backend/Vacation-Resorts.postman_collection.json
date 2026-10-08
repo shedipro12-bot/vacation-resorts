@@ -1,0 +1,3203 @@
+{
+  "info": {
+    "_postman_id": "ecbe9811-e30f-4152-8500-933856108c9d",
+    "name": "Vacation Resorts - Complete API",
+    "description": "Vacation Resorts API collection matched to the main branch on 8 October 2026.\n\nQUICK START\n1. Start MySQL and the backend. baseUrl includes /api, without a trailing slash.\n2. Run Register new test user; the returned JWT is automatically saved in userToken.\n3. Set adminEmail/adminPassword locally and run Sign in admin; adminToken is saved automatically. No real secrets are included in this export.\n4. Run Get all vacations to select an existing vacation and image.\n5. For admin CRUD, select a local image in each file request. Do not manually set multipart Content-Type: Postman creates the boundary.\n\nSIDE EFFECTS\nRegistration creates a disposable user; Like/Unlike change that user's likes; admin CRUD creates/updates/deletes a disposable vacation. Delete uses a separate createdVacationId. Use a development database. AI/MCP question requests use paid OpenAI calls. Raw MCP calls do not.\n\nRUNNER\nUse a delay of 1000 ms to avoid the backend rate limiter, and allow 150000 ms request timeout for AI. Folder 04 requires manual file setup and intentional deletion; select only desired folders rather than blindly running the whole collection. Preserve selected local file access if using the desktop Runner. Dates for creation are generated at send time.\n\nEXPECTED RESPONSES\n201 registration/create/like, 200 reads/sign-in/update/AI/MCP, 204 unlike/delete; 401 unauthenticated, 403 wrong role, 404 missing route/vacation, 409 duplicate email, 422 invalid input. Assertions expose errors; they do not hide unexpected responses.\n\nLIMITS\nNo /health or backend CSV route exists in the current source. Test CSV download in the frontend. The collection is structurally checked, not proof that live database/OpenAI checks passed. Password minimums in the backend currently differ from the assignment's four-character rule; review separately before submission. Tokens and passwords saved locally in Postman must not be included in a future exported submission.\n",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:4000/api",
+      "type": "string"
+    },
+    {
+      "key": "userEmail",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "userPassword",
+      "value": "PostmanDemo123!",
+      "type": "string"
+    },
+    {
+      "key": "adminEmail",
+      "value": "admin@gmail.com",
+      "type": "string"
+    },
+    {
+      "key": "adminPassword",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "userToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "adminToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "vacationId",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "createdVacationId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "missingVacationId",
+      "value": "2147483647",
+      "type": "string"
+    },
+    {
+      "key": "imageName",
+      "value": "athens.jpg",
+      "type": "string"
+    },
+    {
+      "key": "startDate",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "endDate",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "invalidToken",
+      "value": "intentionally-invalid-token",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "01 - Authentication",
+      "description": "",
+      "item": [
+        {
+          "name": "Register new test user (saves userToken)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/sign-up",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "sign-up"
+              ]
+            },
+            "description": "Creates a new test account each time. Public roleId=2 must be ignored. Generated email is saved for subsequent sign-in/duplicate tests.",
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firstName\": \"Postman\",\n  \"lastName\": \"Traveler\",\n  \"email\": \"{{userEmail}}\",\n  \"password\": \"{{userPassword}}\",\n  \"roleId\": 2\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.collectionVariables.set(\"userEmail\", \"postman-\" + Date.now() + \"-\" + Math.floor(Math.random() * 1000000) + \"@example.com\");",
+                  "pm.collectionVariables.unset(\"userToken\");"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 201\", () => pm.response.to.have.status(201));",
+                  "if ([200, 201].includes(pm.response.code)) {",
+                  " const token = pm.response.json();",
+                  " pm.test(\"JWT returned\", () => pm.expect(token).to.be.a(\"string\").and.match(/^[^.]+\\.[^.]+\\.[^.]+$/));",
+                  " if (typeof token === \"string\") pm.collectionVariables.set(\"userToken\", token);",
+                  "}",
+                  "if (pm.response.code === 201) {",
+                  " const payload = JSON.parse(atob(pm.response.json().split(\".\")[1].replace(/-/g, \"+\").replace(/_/g, \"/\")));",
+                  " pm.test(\"Public registration forces User role\", () => pm.expect(payload.user.roleId).to.eql(1));",
+                  " pm.test(\"Token excludes password\", () => pm.expect(payload.user).not.to.have.property(\"password\"));",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "Sign in test user (saves userToken)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/sign-in",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "sign-in"
+              ]
+            },
+            "description": "Run registration first or set userEmail/userPassword to your existing account.",
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{userEmail}}\",\n  \"password\": \"{{userPassword}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "if ([200, 201].includes(pm.response.code)) {",
+                  " const token = pm.response.json();",
+                  " pm.test(\"JWT returned\", () => pm.expect(token).to.be.a(\"string\").and.match(/^[^.]+\\.[^.]+\\.[^.]+$/));",
+                  " if (typeof token === \"string\") pm.collectionVariables.set(\"userToken\", token);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "Sign in admin (saves adminToken)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/sign-in",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "sign-in"
+              ]
+            },
+            "description": "Set adminEmail/adminPassword locally to a real admin account. Imported seed passwords depend on your HASH_SALT.",
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{adminEmail}}\",\n  \"password\": \"{{adminPassword}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "if ([200, 201].includes(pm.response.code)) {",
+                  " const token = pm.response.json();",
+                  " pm.test(\"JWT returned\", () => pm.expect(token).to.be.a(\"string\").and.match(/^[^.]+\\.[^.]+\\.[^.]+$/));",
+                  " if (typeof token === \"string\") pm.collectionVariables.set(\"adminToken\", token);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "Duplicate email rejected",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/sign-up",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "sign-up"
+              ]
+            },
+            "description": "Run registration first; sends the same saved email.",
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firstName\": \"Postman\",\n  \"lastName\": \"Traveler\",\n  \"email\": \"{{userEmail}}\",\n  \"password\": \"{{userPassword}}\",\n  \"roleId\": 2\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 409\", () => pm.response.to.have.status(409));"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "Invalid email rejected",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/sign-up",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "sign-up"
+              ]
+            },
+            "description": "",
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firstName\": \"Postman\",\n  \"lastName\": \"Traveler\",\n  \"email\": \"invalid-email\",\n  \"password\": \"{{userPassword}}\",\n  \"roleId\": 2\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 422\", () => pm.response.to.have.status(422));"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "Missing registration fields rejected",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/sign-up",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "sign-up"
+              ]
+            },
+            "description": "",
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"incomplete@example.com\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 422\", () => pm.response.to.have.status(422));"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "Wrong credentials rejected",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/sign-in",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "sign-in"
+              ]
+            },
+            "description": "",
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{userEmail}}\",\n  \"password\": \"intentionally-wrong-password\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 401\", () => pm.response.to.have.status(401));"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "Invalid sign-in email rejected",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/sign-in",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "sign-in"
+              ]
+            },
+            "description": "",
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"invalid-email\",\n  \"password\": \"demo1234\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 422\", () => pm.response.to.have.status(422));"
+                ]
+              }
+            }
+          ],
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "02 - Vacation reads",
+      "description": "",
+      "item": [
+        {
+          "name": "Get all vacations (saves vacationId and imageName)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/vacations",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "vacations"
+              ]
+            },
+            "description": "",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{userToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "if (pm.response.code === 200) {",
+                  " const rows = pm.response.json();",
+                  " pm.test(\"Response is a vacation array\", () => pm.expect(rows).to.be.an(\"array\"));",
+                  " if (Array.isArray(rows)) {",
+                  "  pm.test(\"Start dates are sorted ascending\", () => {",
+                  "   const dates = rows.map(row => new Date(row.startDate).getTime());",
+                  "   pm.expect(dates).to.eql([...dates].sort((a, b) => a - b));",
+                  "  });",
+                  "  pm.test(\"Like fields and numeric prices are present\", () => rows.forEach(row => {",
+                  "   pm.expect(row.likesCount).to.be.a(\"number\"); pm.expect(row.isLiked).to.be.a(\"boolean\"); pm.expect(row.price).to.be.a(\"number\");",
+                  "  }));",
+                  "  if (rows.length) {",
+                  "   pm.collectionVariables.set(\"vacationId\", rows[0].vacationId);",
+                  "   if (rows[0].imageFileName) pm.collectionVariables.set(\"imageName\", rows[0].imageFileName);",
+                  "  }",
+                  " }",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "Get one vacation",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/vacations/{{vacationId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "vacations",
+                "{{vacationId}}"
+              ]
+            },
+            "description": "",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{userToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "if (pm.response.code === 200) pm.test(\"Numeric price\", () => pm.expect(pm.response.json().price).to.be.a(\"number\"));"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "Get vacation image (public)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/vacations/images/{{imageName}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "vacations",
+                "images",
+                "{{imageName}}"
+              ]
+            },
+            "description": "",
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Image content type\", () => pm.expect(pm.response.headers.get(\"Content-Type\")).to.match(/^image\\//));"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "Unknown vacation returns 404",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/vacations/{{missingVacationId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "vacations",
+                "{{missingVacationId}}"
+              ]
+            },
+            "description": "",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{userToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 404\", () => pm.response.to.have.status(404));"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "Guest cannot read vacations",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/vacations",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "vacations"
+              ]
+            },
+            "description": "",
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 401\", () => pm.response.to.have.status(401));"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "Invalid token rejected",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/vacations",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "vacations"
+              ]
+            },
+            "description": "",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{invalidToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 401\", () => pm.response.to.have.status(401));"
+                ]
+              }
+            }
+          ],
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "03 - Likes (changes test user likes)",
+      "description": "",
+      "item": [
+        {
+          "name": "Like selected vacation",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/vacations/{{vacationId}}/likes",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "vacations",
+                "{{vacationId}}",
+                "likes"
+              ]
+            },
+            "description": "Changes likes for the test account; use a disposable account.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{userToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 201\", () => pm.response.to.have.status(201));"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "Repeated like stays predictable",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/vacations/{{vacationId}}/likes",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "vacations",
+                "{{vacationId}}",
+                "likes"
+              ]
+            },
+            "description": "",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{userToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 201\", () => pm.response.to.have.status(201));"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "Unlike selected vacation",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/vacations/{{vacationId}}/likes",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "vacations",
+                "{{vacationId}}",
+                "likes"
+              ]
+            },
+            "description": "",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{userToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 204\", () => pm.response.to.have.status(204));"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "Repeated unlike stays predictable",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/vacations/{{vacationId}}/likes",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "vacations",
+                "{{vacationId}}",
+                "likes"
+              ]
+            },
+            "description": "",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{userToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 204\", () => pm.response.to.have.status(204));"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "Like nonexistent vacation",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/vacations/{{missingVacationId}}/likes",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "vacations",
+                "{{missingVacationId}}",
+                "likes"
+              ]
+            },
+            "description": "",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{userToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 404\", () => pm.response.to.have.status(404));"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "Admin cannot like",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/vacations/{{vacationId}}/likes",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "vacations",
+                "{{vacationId}}",
+                "likes"
+              ]
+            },
+            "description": "",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 403\", () => pm.response.to.have.status(403));"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "Admin cannot unlike",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/vacations/{{vacationId}}/likes",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "vacations",
+                "{{vacationId}}",
+                "likes"
+              ]
+            },
+            "description": "",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 403\", () => pm.response.to.have.status(403));"
+                ]
+              }
+            }
+          ],
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "04 - Admin CRUD (manual file selection)",
+      "description": "Run manually in order. File requests require a local file. Delete is intentional and targets createdVacationId, never the vacationId chosen by Get all.",
+      "item": [
+        {
+          "name": "Create test vacation (saves createdVacationId)",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/vacations",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "vacations"
+              ]
+            },
+            "description": "Select image file before sending. Dates are generated 10 and 17 days ahead. Creates a disposable vacation; its ID is separate from vacationId.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "destination",
+                  "value": "Postman Test Resort",
+                  "type": "text"
+                },
+                {
+                  "key": "description",
+                  "value": "A disposable vacation created by the Postman collection for verifying admin CRUD.",
+                  "type": "text"
+                },
+                {
+                  "key": "startDate",
+                  "value": "{{startDate}}",
+                  "type": "text"
+                },
+                {
+                  "key": "endDate",
+                  "value": "{{endDate}}",
+                  "type": "text"
+                },
+                {
+                  "key": "price",
+                  "value": "1750.50",
+                  "type": "text"
+                },
+                {
+                  "key": "image",
+                  "type": "file",
+                  "src": [],
+                  "description": "Select one local JPG/PNG image in Postman before sending. Do not set Content-Type manually."
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const date = new Date();",
+                  "const format = d => [d.getFullYear(), String(d.getMonth() + 1).padStart(2, \"0\"), String(d.getDate()).padStart(2, \"0\")].join(\"-\");",
+                  "date.setDate(date.getDate() + 10); pm.collectionVariables.set(\"startDate\", format(date));",
+                  "date.setDate(date.getDate() + 7); pm.collectionVariables.set(\"endDate\", format(date));",
+                  "pm.collectionVariables.unset(\"createdVacationId\");"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 201\", () => pm.response.to.have.status(201));",
+                  "if (pm.response.code === 201) {",
+                  " const row = pm.response.json();",
+                  " pm.test(\"Created vacation has an ID\", () => pm.expect(row.vacationId).to.be.a(\"number\").above(0));",
+                  " pm.collectionVariables.set(\"createdVacationId\", row.vacationId);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "Read created test vacation",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/vacations/{{createdVacationId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "vacations",
+                "{{createdVacationId}}"
+              ]
+            },
+            "description": "",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const id = pm.collectionVariables.get(\"createdVacationId\");",
+                  "if (!id || !/^[1-9]\\d*$/.test(String(id))) {",
+                  " pm.execution.skipRequest();",
+                  " throw new Error(\"Run Admin: Create test vacation first. Never use a seeded vacation for this workflow.\");",
+                  "}"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "Update test vacation - keep existing image",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/vacations/{{createdVacationId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "vacations",
+                "{{createdVacationId}}"
+              ]
+            },
+            "description": "No image field: the existing image must be retained.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "destination",
+                  "value": "Postman Test Resort Updated",
+                  "type": "text"
+                },
+                {
+                  "key": "description",
+                  "value": "A disposable vacation created by the Postman collection for verifying admin CRUD.",
+                  "type": "text"
+                },
+                {
+                  "key": "startDate",
+                  "value": "{{startDate}}",
+                  "type": "text"
+                },
+                {
+                  "key": "endDate",
+                  "value": "{{endDate}}",
+                  "type": "text"
+                },
+                {
+                  "key": "price",
+                  "value": "1750.50",
+                  "type": "text"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const id = pm.collectionVariables.get(\"createdVacationId\");",
+                  "if (!id || !/^[1-9]\\d*$/.test(String(id))) {",
+                  " pm.execution.skipRequest();",
+                  " throw new Error(\"Run Admin: Create test vacation first. Never use a seeded vacation for this workflow.\");",
+                  "}"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "Update test vacation - replace image",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/vacations/{{createdVacationId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "vacations",
+                "{{createdVacationId}}"
+              ]
+            },
+            "description": "Select a replacement local image. Verify the replacement loads afterward.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "destination",
+                  "value": "Postman Test Resort",
+                  "type": "text"
+                },
+                {
+                  "key": "description",
+                  "value": "A disposable vacation created by the Postman collection for verifying admin CRUD.",
+                  "type": "text"
+                },
+                {
+                  "key": "startDate",
+                  "value": "{{startDate}}",
+                  "type": "text"
+                },
+                {
+                  "key": "endDate",
+                  "value": "{{endDate}}",
+                  "type": "text"
+                },
+                {
+                  "key": "price",
+                  "value": "1750.50",
+                  "type": "text"
+                },
+                {
+                  "key": "image",
+                  "type": "file",
+                  "src": [],
+                  "description": "Select one local JPG/PNG image in Postman before sending. Do not set Content-Type manually."
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const id = pm.collectionVariables.get(\"createdVacationId\");",
+                  "if (!id || !/^[1-9]\\d*$/.test(String(id))) {",
+                  " pm.execution.skipRequest();",
+                  " throw new Error(\"Run Admin: Create test vacation first. Never use a seeded vacation for this workflow.\");",
+                  "}"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "Update test vacation - past dates allowed",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/vacations/{{createdVacationId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "vacations",
+                "{{createdVacationId}}"
+              ]
+            },
+            "description": "",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "destination",
+                  "value": "Postman Test Resort",
+                  "type": "text"
+                },
+                {
+                  "key": "description",
+                  "value": "A disposable vacation created by the Postman collection for verifying admin CRUD.",
+                  "type": "text"
+                },
+                {
+                  "key": "startDate",
+                  "value": "2020-01-10",
+                  "type": "text"
+                },
+                {
+                  "key": "endDate",
+                  "value": "2020-01-17",
+                  "type": "text"
+                },
+                {
+                  "key": "price",
+                  "value": "1750.50",
+                  "type": "text"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const id = pm.collectionVariables.get(\"createdVacationId\");",
+                  "if (!id || !/^[1-9]\\d*$/.test(String(id))) {",
+                  " pm.execution.skipRequest();",
+                  " throw new Error(\"Run Admin: Create test vacation first. Never use a seeded vacation for this workflow.\");",
+                  "}"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "Delete ONLY created test vacation",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/vacations/{{createdVacationId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "vacations",
+                "{{createdVacationId}}"
+              ]
+            },
+            "description": "Deletes the vacation created in this folder, its stored image and associated likes. Send intentionally; this is not a read-only collection.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const id = pm.collectionVariables.get(\"createdVacationId\");",
+                  "if (!id || !/^[1-9]\\d*$/.test(String(id))) {",
+                  " pm.execution.skipRequest();",
+                  " throw new Error(\"Run Admin: Create test vacation first. Never use a seeded vacation for this workflow.\");",
+                  "}"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 204\", () => pm.response.to.have.status(204));"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "Deleted test vacation returns 404",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/vacations/{{createdVacationId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "vacations",
+                "{{createdVacationId}}"
+              ]
+            },
+            "description": "",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const id = pm.collectionVariables.get(\"createdVacationId\");",
+                  "if (!id || !/^[1-9]\\d*$/.test(String(id))) {",
+                  " pm.execution.skipRequest();",
+                  " throw new Error(\"Run Admin: Create test vacation first. Never use a seeded vacation for this workflow.\");",
+                  "}"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 404\", () => pm.response.to.have.status(404));"
+                ]
+              }
+            }
+          ],
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "05 - Authorization and admin validation",
+      "description": "",
+      "item": [
+        {
+          "name": "User cannot create",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/vacations",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "vacations"
+              ]
+            },
+            "description": "",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{userToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "destination",
+                  "value": "Postman Test Resort",
+                  "type": "text"
+                },
+                {
+                  "key": "description",
+                  "value": "A disposable vacation created by the Postman collection for verifying admin CRUD.",
+                  "type": "text"
+                },
+                {
+                  "key": "startDate",
+                  "value": "{{startDate}}",
+                  "type": "text"
+                },
+                {
+                  "key": "endDate",
+                  "value": "{{endDate}}",
+                  "type": "text"
+                },
+                {
+                  "key": "price",
+                  "value": "1750.50",
+                  "type": "text"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 403\", () => pm.response.to.have.status(403));"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "User cannot update",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/vacations/{{vacationId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "vacations",
+                "{{vacationId}}"
+              ]
+            },
+            "description": "",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{userToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "destination",
+                  "value": "Postman Test Resort",
+                  "type": "text"
+                },
+                {
+                  "key": "description",
+                  "value": "A disposable vacation created by the Postman collection for verifying admin CRUD.",
+                  "type": "text"
+                },
+                {
+                  "key": "startDate",
+                  "value": "{{startDate}}",
+                  "type": "text"
+                },
+                {
+                  "key": "endDate",
+                  "value": "{{endDate}}",
+                  "type": "text"
+                },
+                {
+                  "key": "price",
+                  "value": "1750.50",
+                  "type": "text"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 403\", () => pm.response.to.have.status(403));"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "User cannot delete",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/vacations/{{missingVacationId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "vacations",
+                "{{missingVacationId}}"
+              ]
+            },
+            "description": "Uses nonexistent ID rather than a real vacation to avoid deletion if authorization is broken.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{userToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 403\", () => pm.response.to.have.status(403));"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "Admin create requires image",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/vacations",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "vacations"
+              ]
+            },
+            "description": "",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "destination",
+                  "value": "Postman Test Resort",
+                  "type": "text"
+                },
+                {
+                  "key": "description",
+                  "value": "A disposable vacation created by the Postman collection for verifying admin CRUD.",
+                  "type": "text"
+                },
+                {
+                  "key": "startDate",
+                  "value": "{{startDate}}",
+                  "type": "text"
+                },
+                {
+                  "key": "endDate",
+                  "value": "{{endDate}}",
+                  "type": "text"
+                },
+                {
+                  "key": "price",
+                  "value": "1750.50",
+                  "type": "text"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const date = new Date();",
+                  "const format = d => [d.getFullYear(), String(d.getMonth() + 1).padStart(2, \"0\"), String(d.getDate()).padStart(2, \"0\")].join(\"-\");",
+                  "date.setDate(date.getDate() + 10); pm.collectionVariables.set(\"startDate\", format(date));",
+                  "date.setDate(date.getDate() + 7); pm.collectionVariables.set(\"endDate\", format(date));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 422\", () => pm.response.to.have.status(422));"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "Admin rejects negative price",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/vacations",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "vacations"
+              ]
+            },
+            "description": "",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "destination",
+                  "value": "Postman Test Resort",
+                  "type": "text"
+                },
+                {
+                  "key": "description",
+                  "value": "A disposable vacation created by the Postman collection for verifying admin CRUD.",
+                  "type": "text"
+                },
+                {
+                  "key": "startDate",
+                  "value": "{{startDate}}",
+                  "type": "text"
+                },
+                {
+                  "key": "endDate",
+                  "value": "{{endDate}}",
+                  "type": "text"
+                },
+                {
+                  "key": "price",
+                  "value": "-1",
+                  "type": "text"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const date = new Date();",
+                  "const format = d => [d.getFullYear(), String(d.getMonth() + 1).padStart(2, \"0\"), String(d.getDate()).padStart(2, \"0\")].join(\"-\");",
+                  "date.setDate(date.getDate() + 10); pm.collectionVariables.set(\"startDate\", format(date));",
+                  "date.setDate(date.getDate() + 7); pm.collectionVariables.set(\"endDate\", format(date));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 422\", () => pm.response.to.have.status(422));"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "Admin rejects price above 10000",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/vacations",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "vacations"
+              ]
+            },
+            "description": "",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "destination",
+                  "value": "Postman Test Resort",
+                  "type": "text"
+                },
+                {
+                  "key": "description",
+                  "value": "A disposable vacation created by the Postman collection for verifying admin CRUD.",
+                  "type": "text"
+                },
+                {
+                  "key": "startDate",
+                  "value": "{{startDate}}",
+                  "type": "text"
+                },
+                {
+                  "key": "endDate",
+                  "value": "{{endDate}}",
+                  "type": "text"
+                },
+                {
+                  "key": "price",
+                  "value": "10001",
+                  "type": "text"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const date = new Date();",
+                  "const format = d => [d.getFullYear(), String(d.getMonth() + 1).padStart(2, \"0\"), String(d.getDate()).padStart(2, \"0\")].join(\"-\");",
+                  "date.setDate(date.getDate() + 10); pm.collectionVariables.set(\"startDate\", format(date));",
+                  "date.setDate(date.getDate() + 7); pm.collectionVariables.set(\"endDate\", format(date));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 422\", () => pm.response.to.have.status(422));"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "Admin rejects reversed dates",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/vacations",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "vacations"
+              ]
+            },
+            "description": "",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "destination",
+                  "value": "Postman Test Resort",
+                  "type": "text"
+                },
+                {
+                  "key": "description",
+                  "value": "A disposable vacation created by the Postman collection for verifying admin CRUD.",
+                  "type": "text"
+                },
+                {
+                  "key": "startDate",
+                  "value": "{{endDate}}",
+                  "type": "text"
+                },
+                {
+                  "key": "endDate",
+                  "value": "{{startDate}}",
+                  "type": "text"
+                },
+                {
+                  "key": "price",
+                  "value": "1750.50",
+                  "type": "text"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const date = new Date();",
+                  "const format = d => [d.getFullYear(), String(d.getMonth() + 1).padStart(2, \"0\"), String(d.getDate()).padStart(2, \"0\")].join(\"-\");",
+                  "date.setDate(date.getDate() + 10); pm.collectionVariables.set(\"startDate\", format(date));",
+                  "date.setDate(date.getDate() + 7); pm.collectionVariables.set(\"endDate\", format(date));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 422\", () => pm.response.to.have.status(422));"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "Admin rejects past start date (select image)",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/vacations",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "vacations"
+              ]
+            },
+            "description": "Select an image to isolate the past-date check; without one the image check returns 422 first.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "destination",
+                  "value": "Postman Test Resort",
+                  "type": "text"
+                },
+                {
+                  "key": "description",
+                  "value": "A disposable vacation created by the Postman collection for verifying admin CRUD.",
+                  "type": "text"
+                },
+                {
+                  "key": "startDate",
+                  "value": "2020-01-10",
+                  "type": "text"
+                },
+                {
+                  "key": "endDate",
+                  "value": "2020-01-17",
+                  "type": "text"
+                },
+                {
+                  "key": "price",
+                  "value": "1750.50",
+                  "type": "text"
+                },
+                {
+                  "key": "image",
+                  "type": "file",
+                  "src": [],
+                  "description": "Select one local JPG/PNG image in Postman before sending. Do not set Content-Type manually."
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 422\", () => pm.response.to.have.status(422));"
+                ]
+              }
+            }
+          ],
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "06 - Admin reports",
+      "description": "CSV is generated in the frontend from this JSON; the backend has no CSV download route. Verify CSV download in the admin report page.",
+      "item": [
+        {
+          "name": "Admin vacation likes report",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/vacations/reports",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "vacations",
+                "reports"
+              ]
+            },
+            "description": "",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "if (pm.response.code === 200) { const rows = pm.response.json(); pm.test(\"Report rows\", () => { pm.expect(rows).to.be.an(\"array\"); rows.forEach(row => { pm.expect(row.destination).to.be.a(\"string\"); pm.expect(row.likesCount).to.be.a(\"number\"); }); }); }"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "User cannot access report",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/vacations/reports",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "vacations",
+                "reports"
+              ]
+            },
+            "description": "",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{userToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 403\", () => pm.response.to.have.status(403));"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "Guest cannot access report",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/vacations/reports",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "vacations",
+                "reports"
+              ]
+            },
+            "description": "",
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 401\", () => pm.response.to.have.status(401));"
+                ]
+              }
+            }
+          ],
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "07 - AI recommendations (paid provider call)",
+      "description": "",
+      "item": [
+        {
+          "name": "Recommend Paris",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/ai/recommendations",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "ai",
+                "recommendations"
+              ]
+            },
+            "description": "Uses your backend OpenAI key and consumes API credit. Allow up to 150 seconds.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{userToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"destination\": \"Paris, France\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "if (pm.response.code === 200) {",
+                  " const row = pm.response.json();",
+                  " pm.test(\"Answer is nonempty\", () => pm.expect(row.answer).to.be.a(\"string\").and.not.empty);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "Empty destination rejected",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/ai/recommendations",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "ai",
+                "recommendations"
+              ]
+            },
+            "description": "",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{userToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"destination\": \"\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 422\", () => pm.response.to.have.status(422));"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "Oversized destination rejected",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/ai/recommendations",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "ai",
+                "recommendations"
+              ]
+            },
+            "description": "",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{userToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"destination\": \"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 422\", () => pm.response.to.have.status(422));"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "Guest cannot request recommendations",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/ai/recommendations",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "ai",
+                "recommendations"
+              ]
+            },
+            "description": "",
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"destination\": \"Paris, France\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 401\", () => pm.response.to.have.status(401));"
+                ]
+              }
+            }
+          ],
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "08 - MCP database questions (paid provider calls)",
+      "description": "",
+      "item": [
+        {
+          "name": "Active vacation count",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/mcp/ask",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "mcp",
+                "ask"
+              ]
+            },
+            "description": "Uses OpenAI API credit. Compare answer with SQL. Regional classification is an inference from destination names.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{userToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"question\": \"How many vacations are active now?\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "if (pm.response.code === 200) {",
+                  " const row = pm.response.json();",
+                  " pm.test(\"Answer is nonempty\", () => pm.expect(row.answer).to.be.a(\"string\").and.not.empty);",
+                  "}",
+                  "if (pm.response.code === 200) pm.test(\"Expected MCP tool used\", () => pm.expect(pm.response.json().toolsUsed).to.include(\"get_active_vacations_count\"));"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "Average vacation price",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/mcp/ask",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "mcp",
+                "ask"
+              ]
+            },
+            "description": "Uses OpenAI API credit. Compare answer with SQL. Regional classification is an inference from destination names.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{userToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"question\": \"What is the average vacation price?\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "if (pm.response.code === 200) {",
+                  " const row = pm.response.json();",
+                  " pm.test(\"Answer is nonempty\", () => pm.expect(row.answer).to.be.a(\"string\").and.not.empty);",
+                  "}",
+                  "if (pm.response.code === 200) pm.test(\"Expected MCP tool used\", () => pm.expect(pm.response.json().toolsUsed).to.include(\"get_average_vacation_price\"));"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "Future European vacations",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/mcp/ask",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "mcp",
+                "ask"
+              ]
+            },
+            "description": "Uses OpenAI API credit. Compare answer with SQL. Regional classification is an inference from destination names.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{userToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"question\": \"Which future vacations are in Europe?\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "if (pm.response.code === 200) {",
+                  " const row = pm.response.json();",
+                  " pm.test(\"Answer is nonempty\", () => pm.expect(row.answer).to.be.a(\"string\").and.not.empty);",
+                  "}",
+                  "if (pm.response.code === 200) pm.test(\"Expected MCP tool used\", () => pm.expect(pm.response.json().toolsUsed).to.include(\"get_future_vacations\"));"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "Empty question rejected",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/mcp/ask",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "mcp",
+                "ask"
+              ]
+            },
+            "description": "",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{userToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"question\": \"\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 422\", () => pm.response.to.have.status(422));"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "Oversized question rejected",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/mcp/ask",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "mcp",
+                "ask"
+              ]
+            },
+            "description": "",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{userToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"question\": \"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 422\", () => pm.response.to.have.status(422));"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "Guest cannot ask",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/mcp/ask",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "mcp",
+                "ask"
+              ]
+            },
+            "description": "",
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"question\": \"How many vacations are active?\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 401\", () => pm.response.to.have.status(401));"
+                ]
+              }
+            }
+          ],
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "09 - Raw MCP protocol (no AI credit)",
+      "description": "Stateless endpoint: each request creates a new server/transport. No session variable is required. Tool calls query MySQL directly without calling OpenAI.",
+      "item": [
+        {
+          "name": "Initialize",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json, text/event-stream"
+              },
+              {
+                "key": "MCP-Protocol-Version",
+                "value": "2025-03-26"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/mcp",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "mcp"
+              ]
+            },
+            "description": "",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{userToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"jsonrpc\": \"2.0\",\n  \"id\": 1,\n  \"method\": \"initialize\",\n  \"params\": {\n    \"protocolVersion\": \"2025-03-26\",\n    \"capabilities\": {},\n    \"clientInfo\": {\n      \"name\": \"postman-vacation-resorts\",\n      \"version\": \"1.0.0\"\n    }\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "if (pm.response.code === 200) { const result = pm.response.json(); pm.test(\"JSON-RPC success\", () => { pm.expect(result.jsonrpc).to.eql(\"2.0\"); pm.expect(result).not.to.have.property(\"error\"); pm.expect(result).to.have.property(\"result\"); }); }"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "List tools",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json, text/event-stream"
+              },
+              {
+                "key": "MCP-Protocol-Version",
+                "value": "2025-03-26"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/mcp",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "mcp"
+              ]
+            },
+            "description": "",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{userToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"jsonrpc\": \"2.0\",\n  \"id\": 1,\n  \"method\": \"tools/list\",\n  \"params\": {}\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "if (pm.response.code === 200) { const result = pm.response.json(); pm.test(\"JSON-RPC success\", () => { pm.expect(result.jsonrpc).to.eql(\"2.0\"); pm.expect(result).not.to.have.property(\"error\"); pm.expect(result).to.have.property(\"result\"); }); }"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "Call active count tool",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json, text/event-stream"
+              },
+              {
+                "key": "MCP-Protocol-Version",
+                "value": "2025-03-26"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/mcp",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "mcp"
+              ]
+            },
+            "description": "",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{userToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"jsonrpc\": \"2.0\",\n  \"id\": 1,\n  \"method\": \"tools/call\",\n  \"params\": {\n    \"name\": \"get_active_vacations_count\",\n    \"arguments\": {}\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "if (pm.response.code === 200) { const result = pm.response.json(); pm.test(\"JSON-RPC success\", () => { pm.expect(result.jsonrpc).to.eql(\"2.0\"); pm.expect(result).not.to.have.property(\"error\"); pm.expect(result).to.have.property(\"result\"); }); }"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "Call average price tool",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json, text/event-stream"
+              },
+              {
+                "key": "MCP-Protocol-Version",
+                "value": "2025-03-26"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/mcp",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "mcp"
+              ]
+            },
+            "description": "",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{userToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"jsonrpc\": \"2.0\",\n  \"id\": 1,\n  \"method\": \"tools/call\",\n  \"params\": {\n    \"name\": \"get_average_vacation_price\",\n    \"arguments\": {}\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "if (pm.response.code === 200) { const result = pm.response.json(); pm.test(\"JSON-RPC success\", () => { pm.expect(result.jsonrpc).to.eql(\"2.0\"); pm.expect(result).not.to.have.property(\"error\"); pm.expect(result).to.have.property(\"result\"); }); }"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "Call future vacations tool",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json, text/event-stream"
+              },
+              {
+                "key": "MCP-Protocol-Version",
+                "value": "2025-03-26"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/mcp",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "mcp"
+              ]
+            },
+            "description": "",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{userToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"jsonrpc\": \"2.0\",\n  \"id\": 1,\n  \"method\": \"tools/call\",\n  \"params\": {\n    \"name\": \"get_future_vacations\",\n    \"arguments\": {}\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "if (pm.response.code === 200) { const result = pm.response.json(); pm.test(\"JSON-RPC success\", () => { pm.expect(result.jsonrpc).to.eql(\"2.0\"); pm.expect(result).not.to.have.property(\"error\"); pm.expect(result).to.have.property(\"result\"); }); }"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "Unsupported GET returns 405",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/mcp",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "mcp"
+              ]
+            },
+            "description": "",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{userToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 405\", () => pm.response.to.have.status(405));"
+                ]
+              }
+            }
+          ],
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "10 - Routing",
+      "description": "",
+      "item": [
+        {
+          "name": "Unknown API route returns 404",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/not-a-real-route",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "not-a-real-route"
+              ]
+            },
+            "description": "",
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 404\", () => pm.response.to.have.status(404));"
+                ]
+              }
+            }
+          ],
+          "response": []
+        }
+      ]
+    }
+  ]
+}
