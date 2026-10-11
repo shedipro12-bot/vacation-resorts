@@ -11,5 +11,7 @@ RUN npm install
 # Copy the application; .dockerignore excludes secrets and node_modules.
 COPY . /app
 
+EXPOSE 5173
+
 # Run the existing start script.
 ENTRYPOINT ["npm", "start"]

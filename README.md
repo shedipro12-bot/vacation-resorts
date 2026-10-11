@@ -136,20 +136,22 @@ PowerShell:
 
 ```powershell
 Copy-Item .env.example .env
+notepad .env
 ```
 
-Set `MYSQL_ROOT_PASSWORD`, `MYSQL_PASSWORD`, `JWT_SECRET`, `HASH_SALT` and `OPENAI_API_KEY`. Use separate strong values for the database passwords/JWT secret. For existing password hashes, keep the original `HASH_SALT`; otherwise register a fresh account after startup. Keep `.env` private. The OpenAI key is passed only to the backend.
+Fill every required variable with an actual value, not a placeholder. Save the root `.env` before starting Docker. Choose `MYSQL_ROOT_PASSWORD` for Docker MySQL's root account and `MYSQL_PASSWORD` for its `vacation_app` account; these are separate from your locally installed MySQL. Copy the actual `JWT_SECRET`, `HASH_SALT` and `OPENAI_API_KEY` from your existing backend settings when reusing its data. Use separate strong values for the database passwords/JWT secret. For existing password hashes, keep the original `HASH_SALT`; otherwise register a fresh account after startup. Keep `.env` private. The OpenAI key is passed only to the backend.
 
 Start all three services from the root:
 
 ```bash
+docker compose config --quiet
 docker compose up -d --build
 docker compose ps
 ```
 
 Stop any locally running backend on port 4000 before starting Docker, or choose a different `BACKEND_PORT` in the root `.env`.
 
-Open http://localhost:5173. Vite serves React on port 5173. Browser API and image requests go to http://localhost:4000/api (or your configured `BACKEND_PORT`). The browser uses localhost; only containers use Compose service names. Postman can continue using http://localhost:4000/api; change its URLs if you change `BACKEND_PORT`. MySQL is accessed by the backend through the `mysql-service` service name and is not published to a host port, so your existing local MySQL can stay running.
+Open http://localhost:5173. Use `localhost`, not `127.0.0.1`, in the browser: the images use `localhost` and the backend enforces a same-site resource policy. Vite serves React on port 5173. Browser API and image requests go to http://localhost:4000/api (or your configured `BACKEND_PORT`). The browser uses localhost; only containers use Compose service names. Postman can continue using http://localhost:4000/api; change its URLs if you change `BACKEND_PORT`. MySQL is accessed by the backend through the `mysql-service` service name and is not published to a host port, so your existing local MySQL can stay running.
 
 The first launch imports `Database/vacationDb.sql` into the Docker database. It creates a separate database instance; it does not import changes from your locally running MySQL automatically. MySQL initialization runs only for a new empty `mysql_data` volume. The initial image files are copied into the `vacation_images` volume on its first use. Both volumes survive ordinary container recreation and `docker compose down`.
 
@@ -167,7 +169,13 @@ Open http://localhost:4000/api/health; it returns 200 when MySQL is reachable an
 docker compose exec mysql-service mysql -u root -p vacationdb
 ```
 
-Enter the root password from your root `.env`, then run `UPDATE users SET roleId = 2 WHERE email = 'your-admin-email@example.com';` and sign in again. Existing imported seed passwords require the salt used when those hashes were generated.
+Enter the root password stored when this Docker database was first initialized (without surrounding quotes), then run `UPDATE users SET roleId = 2 WHERE email = 'your-admin-email@example.com';` and sign in again. Existing imported seed passwords require the salt used when those hashes were generated.
+
+MySQL stores its account passwords on the first initialization of the database volume. Editing `MYSQL_ROOT_PASSWORD` or `MYSQL_PASSWORD` in `.env` and recreating containers does not update those stored passwords. If you reset root through SQL, update the root `.env` to match afterward. Keep temporary password-recovery settings out of normal startup and submission.
+
+For local development, use `Backend/.env` and `Frontend/.env`. For this Docker setup, only the root `.env` is required: Compose supplies the container settings. It loads this file automatically; `--env-file .\\.env` can select it explicitly when troubleshooting. `docker compose config --quiet` produces no output on success. Do not share `docker compose config` output without `--quiet`, because it can include secrets.
+
+Local MySQL users and likes added after the SQL export are not automatically copied into Docker. Register fresh demo accounts through the Docker website and promote an admin with the SQL above. The provided seed accounts may have incompatible password hashes; their presence does not guarantee a working login. To distribute your verified demo accounts on fresh installations, export the final Docker database into `Database/vacationDb.sql` and include every image filename referenced by that export. Password hashes require the same `HASH_SALT`; never commit your real secrets.
 
 To check persistence, add a test vacation and image, run `docker compose down`, start again with `docker compose up -d --build`, and confirm the row/image still exist. Do not use `docker compose down -v` for a normal restart: `-v` deletes both persistent volumes and their data.
 
