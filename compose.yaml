@@ -1,7 +1,9 @@
+# Three services, following the September 7 Northwind lesson.
+# Secrets come from the root .env; persistent volume names are unchanged.
 name: vacation-resorts
 
 services:
-  mysql:
+  mysql-service:
     image: mysql:8.0
     restart: unless-stopped
     environment:
@@ -21,27 +23,27 @@ services:
     networks:
       - resort
 
-  backend:
-    build:
-      context: ./Backend
+  backend-service:
+    image: vacation-resorts-backend
+    build: ./Backend
     restart: unless-stopped
     init: true
     environment:
-      ENVIRONMENT: production
-      MYSQL_HOST: mysql
+      ENVIRONMENT: development
+      MYSQL_HOST: mysql-service
       MYSQL_USER: vacation_app
       MYSQL_PASSWORD: ${MYSQL_PASSWORD:?Set MYSQL_PASSWORD in the root .env}
       MYSQL_DATABASE: vacationdb
       JWT_SECRET: ${JWT_SECRET:?Set JWT_SECRET in the root .env}
       HASH_SALT: ${HASH_SALT:?Set HASH_SALT in the root .env}
       OPENAI_API_KEY: ${OPENAI_API_KEY:?Set OPENAI_API_KEY in the root .env}
-      VACATION_IMAGES_BASE_URL: /api/vacations/images/
+      VACATION_IMAGES_BASE_URL: http://localhost:${BACKEND_PORT:-4000}/api/vacations/images/
     ports:
       - "127.0.0.1:${BACKEND_PORT:-4000}:4000"
     volumes:
-      - vacation_images:/app/dist/assets/images
+      - vacation_images:/app/src/assets/images
     depends_on:
-      mysql:
+      mysql-service:
         condition: service_healthy
     healthcheck:
       test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:4000/api/health').then(r => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))"]
@@ -52,17 +54,19 @@ services:
     networks:
       - resort
 
-  frontend:
-    build:
-      context: ./Frontend
+  frontend-service:
+    image: vacation-resorts-frontend
+    build: ./Frontend
+    environment:
+      VITE_BASE_SERVER_URL: http://localhost:${BACKEND_PORT:-4000}/api
     restart: unless-stopped
     ports:
-      - "127.0.0.1:${FRONTEND_PORT:-8080}:80"
+      - "127.0.0.1:${FRONTEND_PORT:-5173}:5173"
     depends_on:
-      backend:
+      backend-service:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "wget", "--quiet", "--spider", "http://127.0.0.1/healthz"]
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:5173').then(r => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))"]
       interval: 10s
       timeout: 5s
       retries: 5

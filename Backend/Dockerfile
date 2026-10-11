@@ -1,18 +1,15 @@
-FROM node:24-bookworm-slim AS build
-WORKDIR /app
-COPY package*.json ./
-RUN npm ci
-COPY tsconfig*.json ./
-COPY src ./src
-RUN npm run build
+# Node.js 24 on Alpine, following the September 7 lesson.
+FROM node:24-alpine
 
-FROM node:24-bookworm-slim AS runtime
-ENV NODE_ENV=production
+# Create the application folder inside the image.
 WORKDIR /app
-COPY package*.json ./
-RUN npm ci --omit=dev && npm cache clean --force
-COPY --from=build --chown=node:node /app/dist ./dist
-COPY --chown=node:node src/assets ./dist/assets
-USER node
-EXPOSE 4000
-CMD ["node", "dist/app.js"]
+
+# Install dependencies before copying the application.
+COPY package*.json /app/
+RUN npm install
+
+# Copy the application; .dockerignore excludes secrets and node_modules.
+COPY . /app
+
+# Run the existing start script.
+ENTRYPOINT ["npm", "start"]

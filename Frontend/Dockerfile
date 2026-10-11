@@ -1,13 +1,15 @@
-FROM node:24-bookworm-slim AS build
-WORKDIR /app
-COPY package*.json ./
-RUN npm ci
-COPY . .
-ENV VITE_BASE_SERVER_URL=/api
-RUN npm run build
+# Node.js 24 on Alpine, following the September 7 lesson.
+FROM node:24-alpine
 
-FROM nginx:1.28-alpine AS runtime
-COPY nginx.conf /etc/nginx/conf.d/default.conf
-COPY --from=build /app/dist /usr/share/nginx/html
-EXPOSE 80
-CMD ["nginx", "-g", "daemon off;"]
+# Create the application folder inside the image.
+WORKDIR /app
+
+# Install dependencies before copying the application.
+COPY package*.json /app/
+RUN npm install
+
+# Copy the application; .dockerignore excludes secrets and node_modules.
+COPY . /app
+
+# Run the existing start script.
+ENTRYPOINT ["npm", "start"]

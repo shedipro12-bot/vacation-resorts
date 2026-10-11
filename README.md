@@ -149,22 +149,22 @@ docker compose ps
 
 Stop any locally running backend on port 4000 before starting Docker, or choose a different `BACKEND_PORT` in the root `.env`.
 
-Open http://localhost:8080. API and images are served through `/api` on that same address, so the browser never needs container service names. Postman can continue using http://localhost:4000/api; change its URLs if you change `BACKEND_PORT`. MySQL is accessed by the backend through the `mysql` service name and is not published to a host port, so your existing local MySQL can stay running.
+Open http://localhost:5173. Vite serves React on port 5173. Browser API and image requests go to http://localhost:4000/api (or your configured `BACKEND_PORT`). The browser uses localhost; only containers use Compose service names. Postman can continue using http://localhost:4000/api; change its URLs if you change `BACKEND_PORT`. MySQL is accessed by the backend through the `mysql-service` service name and is not published to a host port, so your existing local MySQL can stay running.
 
 The first launch imports `Database/vacationDb.sql` into the Docker database. It creates a separate database instance; it does not import changes from your locally running MySQL automatically. MySQL initialization runs only for a new empty `mysql_data` volume. The initial image files are copied into the `vacation_images` volume on its first use. Both volumes survive ordinary container recreation and `docker compose down`.
 
-The backend runs compiled JavaScript as the non-root Node user. Nginx serves the production frontend, falls back to React routing on refresh, and proxies API requests. Health checks wait for the seeded database, then the backend, then the frontend.
+The Dockerfiles follow the September 7 Northwind lesson: `node:24-alpine`, `WORKDIR /app`, copy package files, `npm install`, copy application files, and `ENTRYPOINT ["npm", "start"]`. The backend runs the existing nodemon/tsx script and the frontend runs Vite with host `0.0.0.0`. This is a course development setup; Nginx is not used. Health checks wait for the seeded database, then the backend, then the frontend. Database and image volume names stay unchanged to preserve existing Docker data. Stop local Vite on 5173 or change `FRONTEND_PORT` before starting Docker.
 
 Check logs and readiness:
 
 ```bash
-docker compose logs --tail=100 mysql backend frontend
+docker compose logs --tail=100 mysql-service backend-service frontend-service
 ```
 
-Open http://localhost:8080/api/health; it returns 200 when MySQL is reachable and 503 otherwise. Register a test account, sign in, and test cards/images, likes, admin CRUD/report/CSV, AI and MCP. To promote a newly registered local Docker account, open the MySQL client with:
+Open http://localhost:4000/api/health; it returns 200 when MySQL is reachable and 503 otherwise. Register a test account, sign in, and test cards/images, likes, admin CRUD/report/CSV, AI and MCP. To promote a newly registered local Docker account, open the MySQL client with:
 
 ```bash
-docker compose exec mysql mysql -u root -p vacationdb
+docker compose exec mysql-service mysql -u root -p vacationdb
 ```
 
 Enter the root password from your root `.env`, then run `UPDATE users SET roleId = 2 WHERE email = 'your-admin-email@example.com';` and sign in again. Existing imported seed passwords require the salt used when those hashes were generated.
