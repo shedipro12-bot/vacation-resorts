@@ -1,4 +1,4 @@
-# Three services, following the September 7 Northwind lesson.
+# MySQL, backend and frontend services.
 # Secrets come from the root .env; persistent volume names are unchanged.
 name: vacation-resorts
 

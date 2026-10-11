@@ -153,7 +153,7 @@ Open http://localhost:5173. Vite serves React on port 5173. Browser API and imag
 
 The first launch imports `Database/vacationDb.sql` into the Docker database. It creates a separate database instance; it does not import changes from your locally running MySQL automatically. MySQL initialization runs only for a new empty `mysql_data` volume. The initial image files are copied into the `vacation_images` volume on its first use. Both volumes survive ordinary container recreation and `docker compose down`.
 
-The Dockerfiles follow the September 7 Northwind lesson: `node:24-alpine`, `WORKDIR /app`, copy package files, `npm install`, copy application files, and `ENTRYPOINT ["npm", "start"]`. The backend runs the existing nodemon/tsx script and the frontend runs Vite with host `0.0.0.0`. This is a course development setup; Nginx is not used. Health checks wait for the seeded database, then the backend, then the frontend. Database and image volume names stay unchanged to preserve existing Docker data. Stop local Vite on 5173 or change `FRONTEND_PORT` before starting Docker.
+The Dockerfiles use `node:24-alpine`, `WORKDIR /app`, copy package files, `npm install`, copy application files, and `ENTRYPOINT ["npm", "start"]`. The backend runs the existing nodemon/tsx script and the frontend runs Vite with host `0.0.0.0`. This is a development setup; Nginx is not used. Health checks wait for the seeded database, then the backend, then the frontend. Database and image volume names stay unchanged to preserve existing Docker data. Stop local Vite on 5173 or change `FRONTEND_PORT` before starting Docker.
 
 Check logs and readiness:
 

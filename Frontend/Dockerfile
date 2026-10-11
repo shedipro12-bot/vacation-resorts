@@ -1,4 +1,4 @@
-# Node.js 24 on Alpine, following the September 7 lesson.
+# Node.js 24 on Alpine.
 FROM node:24-alpine
 
 # Create the application folder inside the image.
